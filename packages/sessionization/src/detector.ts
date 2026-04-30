@@ -1,4 +1,9 @@
-import { DEFAULT_CONFIG, type DetectedSession, type SessionInput, type SessionizationConfig } from "./types";
+import {
+  DEFAULT_CONFIG,
+  type DetectedSession,
+  type SessionInput,
+  type SessionizationConfig,
+} from "./types";
 
 export const detectSessions = (
   events: readonly SessionInput[],
@@ -9,7 +14,8 @@ export const detectSessions = (
 
   for (const [, userEvents] of byUser) {
     const sorted = [...userEvents].sort(
-      (a, b) => new Date(a.eventTime).getTime() - new Date(b.eventTime).getTime()
+      (a, b) =>
+        new Date(a.eventTime).getTime() - new Date(b.eventTime).getTime()
     );
 
     if (sorted.length < config.minSessionEvents) {

@@ -1,6 +1,6 @@
 export interface SessionizationConfig {
-  readonly sessionGapMinutes: number;
   readonly minSessionEvents: number;
+  readonly sessionGapMinutes: number;
 }
 
 export const DEFAULT_CONFIG: SessionizationConfig = {
@@ -10,18 +10,18 @@ export const DEFAULT_CONFIG: SessionizationConfig = {
 
 export interface SessionInput {
   readonly canonicalUserId: string;
-  readonly eventTime: string;
-  readonly id: string;
-  readonly organizationId: string;
-  readonly projectId?: string;
-  readonly source: string;
-  readonly sourceEventType: string;
   readonly content: {
     readonly branch?: string;
     readonly taskId?: string;
     readonly message?: string;
     readonly title?: string;
   };
+  readonly eventTime: string;
+  readonly id: string;
+  readonly organizationId: string;
+  readonly projectId?: string;
+  readonly source: string;
+  readonly sourceEventType: string;
 }
 
 export interface DetectedSession {

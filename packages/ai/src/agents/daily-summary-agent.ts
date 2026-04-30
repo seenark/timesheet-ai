@@ -1,7 +1,7 @@
 import { Agent } from "@mastra/core/agent";
-import { DailySummaryOutputSchema, type DailySummaryOutput } from "../schemas";
-import { formatWorkUnitsForSummary } from "../prompts";
 import type { WorkUnit } from "@timesheet-ai/domain";
+import { formatWorkUnitsForSummary } from "../prompts";
+import { type DailySummaryOutput, DailySummaryOutputSchema } from "../schemas";
 
 const MODEL = process.env.AI_MODEL ?? "zai-coding-plan/glm-4.7";
 
@@ -27,6 +27,7 @@ Return a JSON object with:
 ## Examples
 Good: "Completed implementation of user authentication including JWT-based login/logout, middleware integration, and password reset flow. Also addressed bug in session handling and updated related tests."
 Bad: "Worked on authentication. Fixed a bug. Updated tests."`,
+  // biome-ignore lint/suspicious/noExplicitAny: Mastra runtime accepts provider/model string identifiers
   model: MODEL as any,
 });
 
@@ -42,7 +43,12 @@ export const generateDailySummary = async (
     };
   }
 
-  const context = formatWorkUnitsForSummary(workUnits, scopeType, scopeId, date);
+  const context = formatWorkUnitsForSummary(
+    workUnits,
+    scopeType,
+    scopeId,
+    date
+  );
 
   try {
     const response = await dailySummaryAgent.generate(context, {
@@ -52,7 +58,8 @@ export const generateDailySummary = async (
     return response.object as DailySummaryOutput;
   } catch {
     return {
-      summary: "Work was recorded but summary generation failed. Please review individual work units.",
+      summary:
+        "Work was recorded but summary generation failed. Please review individual work units.",
     };
   }
 };

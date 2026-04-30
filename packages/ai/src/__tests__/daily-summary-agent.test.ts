@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "bun:test";
+import { beforeEach, describe, expect, it, vi } from "bun:test";
 import type { WorkUnit } from "@timesheet-ai/domain";
 import type { DailySummaryOutput } from "../schemas";
 
@@ -30,7 +30,9 @@ vi.mock("@mastra/core/agent", () => ({
   })),
 }));
 
-const { generateDailySummary, dailySummaryAgent } = await import("../agents/daily-summary-agent");
+const { generateDailySummary, dailySummaryAgent } = await import(
+  "../agents/daily-summary-agent"
+);
 
 describe("daily-summary-agent", () => {
   beforeEach(() => {
@@ -51,15 +53,27 @@ describe("daily-summary-agent", () => {
 
       mockGenerate.mockResolvedValueOnce(mockResponse);
 
-      const result = await generateDailySummary(workUnits, "user", "user_001", "2024-01-15");
+      const result = await generateDailySummary(
+        workUnits,
+        "user",
+        "user_001",
+        "2024-01-15"
+      );
 
       expect(result).toEqual(mockResponse.object);
     });
 
     it("returns placeholder summary for empty work units", async () => {
-      const result = await generateDailySummary([], "user", "user_001", "2024-01-15");
+      const result = await generateDailySummary(
+        [],
+        "user",
+        "user_001",
+        "2024-01-15"
+      );
 
-      expect(result.summary).toBe("No recorded work activities for this period.");
+      expect(result.summary).toBe(
+        "No recorded work activities for this period."
+      );
       expect(mockGenerate).not.toHaveBeenCalled();
     });
 
@@ -68,9 +82,16 @@ describe("daily-summary-agent", () => {
 
       mockGenerate.mockRejectedValueOnce(new Error("LLM error"));
 
-      const result = await generateDailySummary(workUnits, "user", "user_001", "2024-01-15");
+      const result = await generateDailySummary(
+        workUnits,
+        "user",
+        "user_001",
+        "2024-01-15"
+      );
 
-      expect(result.summary).toBe("Work was recorded but summary generation failed. Please review individual work units.");
+      expect(result.summary).toBe(
+        "Work was recorded but summary generation failed. Please review individual work units."
+      );
     });
 
     it("calls formatWorkUnitsForSummary with correct inputs", async () => {
@@ -97,7 +118,12 @@ describe("daily-summary-agent", () => {
 
       mockGenerate.mockResolvedValueOnce(mockResponse);
 
-      await generateDailySummary(workUnits, "project", "proj_001", "2024-01-15");
+      await generateDailySummary(
+        workUnits,
+        "project",
+        "proj_001",
+        "2024-01-15"
+      );
 
       const generateCall = mockGenerate.mock.calls[0];
       const contextArg = generateCall?.[0] as string;
@@ -114,14 +140,20 @@ describe("daily-summary-agent", () => {
       const workUnits = [createMockWorkUnit()];
 
       const expectedOutput = {
-        summary: "Completed implementation of user authentication including JWT-based login/logout, middleware integration, and password reset flow.",
+        summary:
+          "Completed implementation of user authentication including JWT-based login/logout, middleware integration, and password reset flow.",
       } satisfies DailySummaryOutput;
 
       mockGenerate.mockResolvedValueOnce({
         object: expectedOutput,
       });
 
-      const result = await generateDailySummary(workUnits, "user", "user_001", "2024-01-15");
+      const result = await generateDailySummary(
+        workUnits,
+        "user",
+        "user_001",
+        "2024-01-15"
+      );
 
       expect(result).toEqual(expectedOutput);
       expect(result.summary).toContain("Completed implementation");

@@ -12,17 +12,23 @@ export const detectClusters = (
 
     if (topics.size <= 1) {
       const topicLabel = topics.keys().next().value as string | undefined;
-      clusters.push(buildCluster(projectEvents, projectId, "project", topicLabel, sessionId));
+      clusters.push(
+        buildCluster(projectEvents, projectId, "project", topicLabel, sessionId)
+      );
     } else {
       for (const [topicLabel, topicEvents] of topics) {
-        clusters.push(buildCluster(topicEvents, projectId, "topic", topicLabel, sessionId));
+        clusters.push(
+          buildCluster(topicEvents, projectId, "topic", topicLabel, sessionId)
+        );
       }
     }
   }
 
   const unassigned = sessionEvents.filter((e) => !e.projectId);
   if (unassigned.length > 0) {
-    clusters.push(buildCluster(unassigned, undefined, "mixed", undefined, sessionId));
+    clusters.push(
+      buildCluster(unassigned, undefined, "mixed", undefined, sessionId)
+    );
   }
 
   return clusters;
@@ -79,7 +85,7 @@ const buildCluster = (
   return {
     canonicalUserId: sorted[0]!.canonicalUserId,
     clusterType,
-    endedAt: sorted[sorted.length - 1]!.eventTime,
+    endedAt: sorted.at(-1)!.eventTime,
     eventIds: sorted.map((e) => e.id),
     organizationId: sorted[0]!.organizationId,
     projectId,

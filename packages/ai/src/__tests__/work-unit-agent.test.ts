@@ -1,8 +1,10 @@
-import { describe, expect, it, vi, beforeEach } from "bun:test";
+import { beforeEach, describe, expect, it, vi } from "bun:test";
 import type { ActivityCluster, NormalizedEvent } from "@timesheet-ai/domain";
 import type { WorkUnitOutput } from "../schemas";
 
-const createMockEvent = (overrides: Partial<NormalizedEvent> = {}): NormalizedEvent => ({
+const createMockEvent = (
+  overrides: Partial<NormalizedEvent> = {}
+): NormalizedEvent => ({
   attribution: {},
   content: {},
   eventTime: "2024-01-15T09:00:00Z",
@@ -16,7 +18,9 @@ const createMockEvent = (overrides: Partial<NormalizedEvent> = {}): NormalizedEv
   ...overrides,
 });
 
-const createMockCluster = (overrides: Partial<ActivityCluster> = {}): ActivityCluster => ({
+const createMockCluster = (
+  overrides: Partial<ActivityCluster> = {}
+): ActivityCluster => ({
   id: "clust_001",
   clusterType: "project",
   startedAt: "2024-01-15T09:00:00Z",
@@ -92,8 +96,16 @@ describe("work-unit-agent", () => {
         topicLabel: "branch:feature/auth",
       });
       const events = [
-        createMockEvent({ id: "evt_001", source: "git", sourceEventType: "commit" }),
-        createMockEvent({ id: "evt_002", source: "plane", sourceEventType: "issue_updated" }),
+        createMockEvent({
+          id: "evt_001",
+          source: "git",
+          sourceEventType: "commit",
+        }),
+        createMockEvent({
+          id: "evt_002",
+          source: "plane",
+          sourceEventType: "issue_updated",
+        }),
       ];
 
       const mockResponse = {
@@ -125,7 +137,8 @@ describe("work-unit-agent", () => {
 
       const expectedOutput = {
         title: "Implemented user authentication",
-        summary: "Added JWT-based authentication with login and logout endpoints.",
+        summary:
+          "Added JWT-based authentication with login and logout endpoints.",
         estimatedMinutes: 90,
         confidence: 0.88,
       } satisfies WorkUnitOutput;

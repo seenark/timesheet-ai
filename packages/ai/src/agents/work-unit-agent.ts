@@ -1,7 +1,7 @@
 import { Agent } from "@mastra/core/agent";
-import { WorkUnitOutputSchema, type WorkUnitOutput } from "../schemas";
-import { formatEventsForWorkUnit } from "../prompts";
 import type { ActivityCluster, NormalizedEvent } from "@timesheet-ai/domain";
+import { formatEventsForWorkUnit } from "../prompts";
+import { type WorkUnitOutput, WorkUnitOutputSchema } from "../schemas";
 
 const MODEL = process.env.AI_MODEL ?? "zai-coding-plan/glm-4.7";
 
@@ -33,12 +33,13 @@ Return a JSON object with:
 - For Discord messages: note discussions, decisions, or coordination work
 - Be conservative with time estimates — a few commits is typically 30-60 minutes
 - Set confidence based on evidence clarity (high = clear commits/messages, low = sparse or ambiguous)`,
+  // biome-ignore lint/suspicious/noExplicitAny: Mastra runtime accepts provider/model string identifiers
   model: MODEL as any,
 });
 
 export const generateWorkUnit = async (
   cluster: ActivityCluster,
-  events: NormalizedEvent[],
+  events: NormalizedEvent[]
 ): Promise<WorkUnitOutput> => {
   const context = formatEventsForWorkUnit(cluster, events);
 

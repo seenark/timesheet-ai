@@ -36,7 +36,9 @@ export const createCluster = (input: {
     })) as unknown as [ActivityCluster];
 
     if (!created) {
-      return yield* Effect.fail(new NotFoundError({ resource: "ActivityCluster", id }));
+      return yield* Effect.fail(
+        new NotFoundError({ resource: "ActivityCluster", id })
+      );
     }
     return created;
   });
@@ -48,7 +50,9 @@ export const getCluster = (id: string) =>
       `${TABLE}:${id}`
     )) as unknown as ActivityCluster | null;
     if (!result) {
-      return yield* Effect.fail(new NotFoundError({ resource: "ActivityCluster", id }));
+      return yield* Effect.fail(
+        new NotFoundError({ resource: "ActivityCluster", id })
+      );
     }
     return result;
   });

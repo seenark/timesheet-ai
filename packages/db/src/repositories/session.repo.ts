@@ -30,7 +30,9 @@ export const createSession = (input: {
     })) as unknown as [ActivitySession];
 
     if (!created) {
-      return yield* Effect.fail(new NotFoundError({ resource: "ActivitySession", id }));
+      return yield* Effect.fail(
+        new NotFoundError({ resource: "ActivitySession", id })
+      );
     }
     return created;
   });
@@ -42,7 +44,9 @@ export const getSession = (id: string) =>
       `${TABLE}:${id}`
     )) as unknown as ActivitySession | null;
     if (!result) {
-      return yield* Effect.fail(new NotFoundError({ resource: "ActivitySession", id }));
+      return yield* Effect.fail(
+        new NotFoundError({ resource: "ActivitySession", id })
+      );
     }
     return result;
   });

@@ -1,8 +1,14 @@
 import { describe, expect, it } from "bun:test";
-import type { ActivityCluster, NormalizedEvent, WorkUnit } from "@timesheet-ai/domain";
+import type {
+  ActivityCluster,
+  NormalizedEvent,
+  WorkUnit,
+} from "@timesheet-ai/domain";
 import { formatEventsForWorkUnit, formatWorkUnitsForSummary } from "../prompts";
 
-const createMockEvent = (overrides: Partial<NormalizedEvent> = {}): NormalizedEvent => ({
+const createMockEvent = (
+  overrides: Partial<NormalizedEvent> = {}
+): NormalizedEvent => ({
   attribution: {},
   content: {},
   eventTime: "2024-01-15T09:00:00Z",
@@ -16,7 +22,9 @@ const createMockEvent = (overrides: Partial<NormalizedEvent> = {}): NormalizedEv
   ...overrides,
 });
 
-const createMockCluster = (overrides: Partial<ActivityCluster> = {}): ActivityCluster => ({
+const createMockCluster = (
+  overrides: Partial<ActivityCluster> = {}
+): ActivityCluster => ({
   id: "clust_001",
   clusterType: "project",
   startedAt: "2024-01-15T09:00:00Z",
@@ -92,9 +100,13 @@ describe("formatEventsForWorkUnit", () => {
     expect(result).toContain("Jan 15, 2024 12:00 PM");
     expect(result).toContain("Events: 2 total");
     expect(result).toContain("### Events:");
-    expect(result).toContain("[git.commit] Jan 15, 2024 9:00 AM - Branch: feature/auth - Commit: abc123d - \"Add user login\"");
+    expect(result).toContain(
+      '[git.commit] Jan 15, 2024 9:00 AM - Branch: feature/auth - Commit: abc123d - "Add user login"'
+    );
     expect(result).toContain("Files: 3, +45/-12");
-    expect(result).toContain("[git.commit] Jan 15, 2024 10:30 AM - Branch: feature/auth - Commit: def456a - \"Fix auth bug\"");
+    expect(result).toContain(
+      '[git.commit] Jan 15, 2024 10:30 AM - Branch: feature/auth - Commit: def456a - "Fix auth bug"'
+    );
     expect(result).toContain("Files: 1, +10/-5");
   });
 
@@ -115,7 +127,9 @@ describe("formatEventsForWorkUnit", () => {
 
     const result = formatEventsForWorkUnit(cluster, events);
 
-    expect(result).toContain("[git.push] Jan 15, 2024 9:00 AM - Branch: main - 3 commit(s)");
+    expect(result).toContain(
+      "[git.push] Jan 15, 2024 9:00 AM - Branch: main - 3 commit(s)"
+    );
   });
 
   it("formats plane.issue_updated events", () => {
@@ -136,7 +150,9 @@ describe("formatEventsForWorkUnit", () => {
 
     const result = formatEventsForWorkUnit(cluster, events);
 
-    expect(result).toContain("[plane.issue_updated] Jan 15, 2024 9:00 AM - Title: \"Fix login bug\" - Status: in_progress - Task ID: PLANE-123");
+    expect(result).toContain(
+      '[plane.issue_updated] Jan 15, 2024 9:00 AM - Title: "Fix login bug" - Status: in_progress - Task ID: PLANE-123'
+    );
   });
 
   it("formats plane.issue_created events", () => {
@@ -156,7 +172,9 @@ describe("formatEventsForWorkUnit", () => {
 
     const result = formatEventsForWorkUnit(cluster, events);
 
-    expect(result).toContain("[plane.issue_created] Jan 15, 2024 9:00 AM - Title: \"New feature request\" - Task ID: PLANE-456");
+    expect(result).toContain(
+      '[plane.issue_created] Jan 15, 2024 9:00 AM - Title: "New feature request" - Task ID: PLANE-456'
+    );
   });
 
   it("formats discord.message events", () => {
@@ -169,14 +187,17 @@ describe("formatEventsForWorkUnit", () => {
         eventTime: "2024-01-15T09:00:00Z",
         content: {
           channelName: "dev-chat",
-          message: "Hey team, I just pushed the new authentication feature. Please review when you get a chance!",
+          message:
+            "Hey team, I just pushed the new authentication feature. Please review when you get a chance!",
         },
       }),
     ];
 
     const result = formatEventsForWorkUnit(cluster, events);
 
-    expect(result).toContain("[discord.message] Jan 15, 2024 9:00 AM - Channel: dev-chat - Message: \"Hey team, I just pushed the new authentication feature. Please review when you get a chance!\"");
+    expect(result).toContain(
+      '[discord.message] Jan 15, 2024 9:00 AM - Channel: dev-chat - Message: "Hey team, I just pushed the new authentication feature. Please review when you get a chance!"'
+    );
   });
 
   it("truncates long discord messages", () => {
@@ -219,8 +240,8 @@ describe("formatEventsForWorkUnit", () => {
     const result = formatEventsForWorkUnit(cluster, events);
 
     expect(result).toContain("[git.custom_hook] Jan 15, 2024 9:00 AM");
-    expect(result).toContain("Title: \"Sprint 5 started\"");
-    expect(result).toContain("Body: \"Sprint goals have been updated\"");
+    expect(result).toContain('Title: "Sprint 5 started"');
+    expect(result).toContain('Body: "Sprint goals have been updated"');
   });
 
   it("includes topic label when present", () => {
@@ -233,7 +254,10 @@ describe("formatEventsForWorkUnit", () => {
   });
 
   it("handles missing optional fields gracefully", () => {
-    const cluster = createMockCluster({ projectId: undefined, topicLabel: undefined });
+    const cluster = createMockCluster({
+      projectId: undefined,
+      topicLabel: undefined,
+    });
     const events = [
       createMockEvent({
         content: {},
@@ -260,7 +284,9 @@ describe("formatEventsForWorkUnit", () => {
 
     const result = formatEventsForWorkUnit(cluster, events);
 
-    expect(result).toContain("Branch: unknown - Commit: ??????? - \"No message\"");
+    expect(result).toContain(
+      'Branch: unknown - Commit: ??????? - "No message"'
+    );
     expect(result).toContain("Files: 0, +0/-0");
   });
 
@@ -274,7 +300,10 @@ describe("formatEventsForWorkUnit", () => {
   });
 
   it("formats topic cluster type correctly", () => {
-    const cluster = createMockCluster({ clusterType: "topic", projectId: undefined });
+    const cluster = createMockCluster({
+      clusterType: "topic",
+      projectId: undefined,
+    });
     const events = [createMockEvent()];
 
     const result = formatEventsForWorkUnit(cluster, events);
@@ -290,27 +319,44 @@ describe("formatWorkUnitsForSummary", () => {
       createMockWorkUnit({
         id: "wu_001",
         title: "Implemented user authentication",
-        summary: "Added JWT-based authentication with login/logout endpoints. Created User model and auth middleware.",
+        summary:
+          "Added JWT-based authentication with login/logout endpoints. Created User model and auth middleware.",
         estimatedMinutes: 60,
         confidence: 0.85,
       }),
       createMockWorkUnit({
         id: "wu_002",
         title: "Fixed auth token expiry bug",
-        summary: "Tokens were not being refreshed correctly. Added proper expiry handling.",
+        summary:
+          "Tokens were not being refreshed correctly. Added proper expiry handling.",
         estimatedMinutes: 30,
         confidence: 0.9,
       }),
     ];
 
-    const result = formatWorkUnitsForSummary(workUnits, "user", "user_001", "2024-01-15");
+    const result = formatWorkUnitsForSummary(
+      workUnits,
+      "user",
+      "user_001",
+      "2024-01-15"
+    );
 
-    expect(result).toContain("## Daily Summary for user:user_001 on Jan 15, 2024");
+    expect(result).toContain(
+      "## Daily Summary for user:user_001 on Jan 15, 2024"
+    );
     expect(result).toContain("### Work Units: 2 total (estimated 90 minutes)");
-    expect(result).toContain("1. **Implemented user authentication** (60 min, confidence: 0.85)");
-    expect(result).toContain("   Summary: Added JWT-based authentication with login/logout endpoints. Created User model and auth middleware.");
-    expect(result).toContain("2. **Fixed auth token expiry bug** (30 min, confidence: 0.90)");
-    expect(result).toContain("   Summary: Tokens were not being refreshed correctly. Added proper expiry handling.");
+    expect(result).toContain(
+      "1. **Implemented user authentication** (60 min, confidence: 0.85)"
+    );
+    expect(result).toContain(
+      "   Summary: Added JWT-based authentication with login/logout endpoints. Created User model and auth middleware."
+    );
+    expect(result).toContain(
+      "2. **Fixed auth token expiry bug** (30 min, confidence: 0.90)"
+    );
+    expect(result).toContain(
+      "   Summary: Tokens were not being refreshed correctly. Added proper expiry handling."
+    );
   });
 
   it("formats work units for project scope", () => {
@@ -325,17 +371,33 @@ describe("formatWorkUnitsForSummary", () => {
       }),
     ];
 
-    const result = formatWorkUnitsForSummary(workUnits, "project", "proj_001", "2024-01-15");
+    const result = formatWorkUnitsForSummary(
+      workUnits,
+      "project",
+      "proj_001",
+      "2024-01-15"
+    );
 
-    expect(result).toContain("## Daily Summary for project:proj_001 on Jan 15, 2024");
+    expect(result).toContain(
+      "## Daily Summary for project:proj_001 on Jan 15, 2024"
+    );
     expect(result).toContain("### Work Units: 1 total (estimated 120 minutes)");
-    expect(result).toContain("1. **Backend API development** (120 min, confidence: 0.95)");
+    expect(result).toContain(
+      "1. **Backend API development** (120 min, confidence: 0.95)"
+    );
   });
 
   it("returns message when no work units exist", () => {
-    const result = formatWorkUnitsForSummary([], "user", "user_001", "2024-01-15");
+    const result = formatWorkUnitsForSummary(
+      [],
+      "user",
+      "user_001",
+      "2024-01-15"
+    );
 
-    expect(result).toContain("## Daily Summary for user:user_001 on Jan 15, 2024");
+    expect(result).toContain(
+      "## Daily Summary for user:user_001 on Jan 15, 2024"
+    );
     expect(result).toContain("No work was recorded for this user.");
   });
 
@@ -350,7 +412,12 @@ describe("formatWorkUnitsForSummary", () => {
       }),
     ];
 
-    const result = formatWorkUnitsForSummary(workUnits, "user", "user_001", "2024-01-15");
+    const result = formatWorkUnitsForSummary(
+      workUnits,
+      "user",
+      "user_001",
+      "2024-01-15"
+    );
 
     expect(result).toContain("### Work Units: 1 total (estimated 15 minutes)");
     expect(result).toContain("1. **Quick bug fix** (15 min, confidence: 0.70)");
@@ -358,12 +425,29 @@ describe("formatWorkUnitsForSummary", () => {
 
   it("calculates total minutes correctly for multiple work units", () => {
     const workUnits = [
-      createMockWorkUnit({ id: "wu_001", estimatedMinutes: 30, confidence: 0.8 }),
-      createMockWorkUnit({ id: "wu_002", estimatedMinutes: 45, confidence: 0.85 }),
-      createMockWorkUnit({ id: "wu_003", estimatedMinutes: 60, confidence: 0.9 }),
+      createMockWorkUnit({
+        id: "wu_001",
+        estimatedMinutes: 30,
+        confidence: 0.8,
+      }),
+      createMockWorkUnit({
+        id: "wu_002",
+        estimatedMinutes: 45,
+        confidence: 0.85,
+      }),
+      createMockWorkUnit({
+        id: "wu_003",
+        estimatedMinutes: 60,
+        confidence: 0.9,
+      }),
     ];
 
-    const result = formatWorkUnitsForSummary(workUnits, "user", "user_001", "2024-01-15");
+    const result = formatWorkUnitsForSummary(
+      workUnits,
+      "user",
+      "user_001",
+      "2024-01-15"
+    );
 
     expect(result).toContain("(estimated 135 minutes)");
   });
@@ -375,7 +459,12 @@ describe("formatWorkUnitsForSummary", () => {
       createMockWorkUnit({ confidence: 1.0 }),
     ];
 
-    const result = formatWorkUnitsForSummary(workUnits, "user", "user_001", "2024-01-15");
+    const result = formatWorkUnitsForSummary(
+      workUnits,
+      "user",
+      "user_001",
+      "2024-01-15"
+    );
 
     expect(result).toContain("confidence: 0.86");
     expect(result).toContain("confidence: 0.90");
@@ -390,7 +479,12 @@ describe("formatWorkUnitsForSummary", () => {
       createMockWorkUnit({ id: "wu_004", reviewStatus: "flagged" }),
     ];
 
-    const result = formatWorkUnitsForSummary(workUnits, "user", "user_001", "2024-01-15");
+    const result = formatWorkUnitsForSummary(
+      workUnits,
+      "user",
+      "user_001",
+      "2024-01-15"
+    );
 
     expect(result).toContain("### Work Units: 4 total");
   });
@@ -398,10 +492,20 @@ describe("formatWorkUnitsForSummary", () => {
   it("handles various date formats", () => {
     const workUnits = [createMockWorkUnit()];
 
-    const result1 = formatWorkUnitsForSummary(workUnits, "user", "user_001", "2024-12-31");
+    const result1 = formatWorkUnitsForSummary(
+      workUnits,
+      "user",
+      "user_001",
+      "2024-12-31"
+    );
     expect(result1).toContain("Dec 31, 2024");
 
-    const result2 = formatWorkUnitsForSummary(workUnits, "user", "user_001", "2024-01-01");
+    const result2 = formatWorkUnitsForSummary(
+      workUnits,
+      "user",
+      "user_001",
+      "2024-01-01"
+    );
     expect(result2).toContain("Jan 1, 2024");
   });
 });

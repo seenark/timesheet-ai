@@ -11,12 +11,31 @@ export {
   listClustersByUser,
 } from "./cluster.repo";
 export {
-  createSession,
-  deleteSessionsByOrg,
-  getSession,
-  listSessionsByOrg,
-  listSessionsByUser,
-} from "./session.repo";
+  getEventsByUserAndDateRange,
+  storeNormalizedEvent,
+  storeRawPayload,
+} from "./event.repo";
+export {
+  enrichEvent,
+  getNormalizedEvent,
+  listEnrichedEventsByOrg,
+  listEventsByCanonicalUser,
+  listEventsForEnrichment,
+} from "./event-enrich.repo";
+export {
+  createExternalIdentity,
+  findIdentityBySourceAndExternalId,
+  getExternalIdentity,
+  listUnmatchedIdentities,
+  setIdentitiesStatus,
+} from "./identity.repo";
+export {
+  createIntegrationConnection,
+  getIntegrationConnection,
+  listConnectionsByOrg,
+  updateConnectionStatus,
+} from "./integration.repo";
+export { createJobRun, getPendingJobs, updateJobStatus } from "./job.repo";
 export {
   createSourceMapping,
   deleteSourceMapping,
@@ -39,34 +58,15 @@ export {
   listReviewDecisionsByTarget,
 } from "./review.repo";
 export {
-  createExternalIdentity,
-  findIdentityBySourceAndExternalId,
-  getExternalIdentity,
-  listUnmatchedIdentities,
-  setIdentitiesStatus,
-} from "./identity.repo";
-export {
-  createIntegrationConnection,
-  getIntegrationConnection,
-  listConnectionsByOrg,
-  updateConnectionStatus,
-} from "./integration.repo";
+  createSession,
+  deleteSessionsByOrg,
+  getSession,
+  listSessionsByOrg,
+  listSessionsByUser,
+} from "./session.repo";
 export {
   createUser,
   getUser,
   getUserByEmail,
   listUsersByOrg,
 } from "./user.repo";
-export { createJobRun, getPendingJobs, updateJobStatus } from "./job.repo";
-export {
-  getEventsByUserAndDateRange,
-  storeNormalizedEvent,
-  storeRawPayload,
-} from "./event.repo";
-export {
-  enrichEvent,
-  getNormalizedEvent,
-  listEnrichedEventsByOrg,
-  listEventsByCanonicalUser,
-  listEventsForEnrichment,
-} from "./event-enrich.repo";

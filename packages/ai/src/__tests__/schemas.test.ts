@@ -1,12 +1,13 @@
 import { describe, expect, it } from "bun:test";
 import { z } from "zod";
-import { WorkUnitOutputSchema, DailySummaryOutputSchema } from "../schemas";
+import { DailySummaryOutputSchema, WorkUnitOutputSchema } from "../schemas";
 
 describe("WorkUnitOutputSchema", () => {
   it("parses valid data correctly", () => {
     const validData = {
       title: "Implemented user authentication",
-      summary: "Added JWT-based authentication with login and logout functionality",
+      summary:
+        "Added JWT-based authentication with login and logout functionality",
       estimatedMinutes: 120,
       confidence: 0.85,
     };
@@ -119,7 +120,8 @@ describe("WorkUnitOutputSchema", () => {
 describe("DailySummaryOutputSchema", () => {
   it("parses valid data correctly", () => {
     const validData = {
-      summary: "Worked on user authentication and fixed several bugs in the login flow.",
+      summary:
+        "Worked on user authentication and fixed several bugs in the login flow.",
     };
 
     const result = DailySummaryOutputSchema.parse(validData);
@@ -129,7 +131,9 @@ describe("DailySummaryOutputSchema", () => {
   it("rejects missing summary field", () => {
     const invalidData = {};
 
-    expect(() => DailySummaryOutputSchema.parse(invalidData)).toThrow(z.ZodError);
+    expect(() => DailySummaryOutputSchema.parse(invalidData)).toThrow(
+      z.ZodError
+    );
   });
 
   it("rejects extra fields", () => {
@@ -138,7 +142,9 @@ describe("DailySummaryOutputSchema", () => {
       extraField: "not allowed",
     };
 
-    expect(() => DailySummaryOutputSchema.parse(invalidData)).toThrow(z.ZodError);
+    expect(() => DailySummaryOutputSchema.parse(invalidData)).toThrow(
+      z.ZodError
+    );
   });
 });
 
