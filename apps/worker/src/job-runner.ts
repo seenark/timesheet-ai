@@ -32,18 +32,23 @@ export const pollAndExecute = (): Effect.Effect<number> =>
       yield* updateJobStatus(job.id, "running");
       yield* logInfo("Executing job", { jobId: job.id, jobType: job.jobType });
 
-      yield* handler(job.metadata as Record<string, unknown> | undefined);
+      const result = yield* Effect.either(handler(job.metadata as Record<string, unknown> | undefined));
 
-      yield* updateJobStatus(job.id, "completed");
-      yield* logInfo("Job completed", { jobId: job.id });
+      if (result._tag === "Left") {
+        yield* updateJobStatus(job.id, "failed", String(result.left));
+        yield* logError("Job failed", { jobId: job.id, error: String(result.left) });
+      } else {
+        yield* updateJobStatus(job.id, "completed");
+        yield* logInfo("Job completed", { jobId: job.id });
+      }
 
       executed++;
     }
 
     return executed;
   }).pipe(
-    Effect.catchAll((error) => {
-      logError("Job execution failed", { error });
+    Effect.catchAll((error: unknown) => {
+      logError("Job poll cycle failed", { error: String(error) });
       return Effect.succeed(0);
     }),
     Effect.provide(SurrealDb)
