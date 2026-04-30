@@ -5,7 +5,9 @@ import { logInfo } from "@timesheet-ai/observability";
 import { Effect } from "effect";
 import { pollAndExecute, registerJobHandler } from "./job-runner";
 import { runHealthCheck } from "./jobs/health-check";
+import { runIdentityResolve } from "./jobs/identity-resolve";
 import { runIngestionSync } from "./jobs/ingestion-sync";
+import { runEventEnrichment } from "./jobs/event-enrichment";
 
 const POLL_INTERVAL_MS = 5000;
 
@@ -23,6 +25,8 @@ registerPlugin(GitIngestionPlugin);
 
 registerJobHandler("health-check", runHealthCheck);
 registerJobHandler("ingestion-sync", runIngestionSync);
+registerJobHandler("identity-resolve", runIdentityResolve);
+registerJobHandler("event-enrichment", runEventEnrichment);
 
 const program = Effect.gen(function* () {
   yield* logInfo("Worker starting...");

@@ -10,9 +10,11 @@
     "start": "bun run dist/index.mjs"
   },
   "dependencies": {
+    "@timesheet-ai/attribution": "workspace:*",
     "@timesheet-ai/db": "workspace:*",
     "@timesheet-ai/domain": "workspace:*",
     "@timesheet-ai/env": "workspace:*",
+    "@timesheet-ai/identity": "workspace:*",
     "@timesheet-ai/ingestion-core": "workspace:*",
     "@timesheet-ai/ingestion-git": "workspace:*",
     "@timesheet-ai/observability": "workspace:*",
