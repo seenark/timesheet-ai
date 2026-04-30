@@ -4,11 +4,13 @@ import { GitIngestionPlugin } from "@timesheet-ai/ingestion-git";
 import { logInfo } from "@timesheet-ai/observability";
 import { Effect } from "effect";
 import { pollAndExecute, registerJobHandler } from "./job-runner";
+import { runDailySummaryGeneration } from "./jobs/daily-summary-generation";
 import { runEventEnrichment } from "./jobs/event-enrichment";
 import { runHealthCheck } from "./jobs/health-check";
 import { runIdentityResolve } from "./jobs/identity-resolve";
 import { runIngestionSync } from "./jobs/ingestion-sync";
 import { runSessionDetection } from "./jobs/session-detection";
+import { runWorkUnitGeneration } from "./jobs/work-unit-generation";
 
 const POLL_INTERVAL_MS = 5000;
 
@@ -24,11 +26,13 @@ process.on("SIGTERM", () => {
 
 registerPlugin(GitIngestionPlugin);
 
-registerJobHandler("health-check", runHealthCheck);
-registerJobHandler("ingestion-sync", runIngestionSync);
-registerJobHandler("identity-resolve", runIdentityResolve);
+registerJobHandler("daily-summary-generation", runDailySummaryGeneration);
 registerJobHandler("event-enrichment", runEventEnrichment);
+registerJobHandler("health-check", runHealthCheck);
+registerJobHandler("identity-resolve", runIdentityResolve);
+registerJobHandler("ingestion-sync", runIngestionSync);
 registerJobHandler("session-detection", runSessionDetection);
+registerJobHandler("work-unit-generation", runWorkUnitGeneration);
 
 const program = Effect.gen(function* () {
   yield* logInfo("Worker starting...");
