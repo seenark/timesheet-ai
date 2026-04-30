@@ -80,11 +80,11 @@ export const timesheetRoutes = new Elysia({ prefix: "/timesheet" }).get(
   }
 );
 
-function stripRecordPrefixes(wu: WorkUnit): WorkUnit & { canonicalUserId: string; id: string; organizationId: string; projectId: string } {
+function stripRecordPrefixes(wu: WorkUnit) {
   return {
     ...wu,
     canonicalUserId: String(wu.canonicalUserId ?? "").replace("canonical_user:", ""),
-    id: String(wu.id ?? ""),
+    id: String(wu.id),
     organizationId: String(wu.organizationId ?? "").replace("organization:", ""),
     projectId: String(wu.projectId ?? "").replace("project:", ""),
   };
