@@ -1,67 +1,69 @@
+import { Effect } from "effect";
 import type { JobRun } from "@timesheet-ai/domain";
-import { err, generateId, ok, type Result } from "@timesheet-ai/shared";
-import type { Surreal } from "surrealdb";
+import { NotFoundError } from "@timesheet-ai/shared";
+import { generateId } from "@timesheet-ai/shared";
+import { SurrealDbTag } from "../connection";
 
 const TABLE = "job_run";
 
-export const createJobRun = async (
-  db: Surreal,
-  input: {
-    organizationId: string;
-    jobType: string;
-    metadata?: Record<string, unknown>;
-  }
-): Promise<Result<JobRun>> => {
-  const id = generateId("job");
-  const recordId = `${TABLE}:${id}`;
+export const createJobRun = (input: {
+  organizationId: string;
+  jobType: string;
+  metadata?: Record<string, unknown>;
+}) =>
+  Effect.gen(function*() {
+    const db = yield* SurrealDbTag;
+    const id = generateId("job");
+    const recordId = `${TABLE}:${id}`;
 
-  const [created] = (await db.create(recordId, {
-    organizationId: `organization:${input.organizationId}`,
-    jobType: input.jobType,
-    status: "pending",
-    metadata: input.metadata,
-  })) as unknown as [JobRun];
+    const [created] = (yield* db.create(recordId, {
+      organizationId: `organization:${input.organizationId}`,
+      jobType: input.jobType,
+      status: "pending",
+      metadata: input.metadata,
+    })) as unknown as [JobRun];
 
-  if (!created) {
-    return err("Failed to create job run");
-  }
-  return ok(created as JobRun);
-};
+    if (!created) {
+      return yield* Effect.fail(new NotFoundError({ resource: "JobRun", id }));
+    }
+    return created;
+  });
 
-export const updateJobStatus = async (
-  db: Surreal,
+export const updateJobStatus = (
   id: string,
   status: JobRun["status"],
-  error?: string
-): Promise<Result<JobRun>> => {
-  const updates: Record<string, unknown> = { status };
-  if (status === "completed" || status === "failed") {
-    updates.completedAt = new Date().toISOString();
-  }
-  if (error) {
-    updates.error = error;
-  }
+  error?: string,
+) =>
+  Effect.gen(function*() {
+    const db = yield* SurrealDbTag;
+    const updates: Record<string, unknown> = { status };
+    if (status === "completed" || status === "failed") {
+      updates.completedAt = new Date().toISOString();
+    }
+    if (error) {
+      updates.error = error;
+    }
 
-  const updated = (await db.merge(
-    `${TABLE}:${id}`,
-    updates
-  )) as unknown as JobRun | null;
-  if (!updated) {
-    return err("Failed to update job run");
-  }
-  return ok(updated as JobRun);
-};
+    const updated = (yield* db.merge(`${TABLE}:${id}`, updates)) as unknown as
+      | JobRun
+      | null;
+    if (!updated) {
+      return yield* Effect.fail(
+        new NotFoundError({ resource: "JobRun", id }),
+      );
+    }
+    return updated;
+  });
 
-export const getPendingJobs = async (
-  db: Surreal,
-  jobType?: string
-): Promise<JobRun[]> => {
-  const query = jobType
-    ? "SELECT * FROM job_run WHERE status = 'pending' AND jobType = $jobType ORDER BY startedAt ASC"
-    : "SELECT * FROM job_run WHERE status = 'pending' ORDER BY startedAt ASC";
+export const getPendingJobs = (jobType?: string) =>
+  Effect.gen(function*() {
+    const db = yield* SurrealDbTag;
+    const query = jobType
+      ? "SELECT * FROM job_run WHERE status = 'pending' AND jobType = $jobType ORDER BY startedAt ASC"
+      : "SELECT * FROM job_run WHERE status = 'pending' ORDER BY startedAt ASC";
 
-  const [result] = (await db.query(query, { jobType })) as unknown as [
-    JobRun[],
-  ];
-  return (result ?? []) as JobRun[];
-};
+    const [result] = (yield* db.query(query, { jobType })) as unknown as [
+      JobRun[],
+    ];
+    return (result ?? []) as JobRun[];
+  });

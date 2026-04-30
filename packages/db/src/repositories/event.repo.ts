@@ -1,70 +1,75 @@
+import { Effect } from "effect";
 import type { NormalizedEvent, RawEventPayload } from "@timesheet-ai/domain";
-import { err, generateId, ok, type Result } from "@timesheet-ai/shared";
-import type { Surreal } from "surrealdb";
+import { NotFoundError } from "@timesheet-ai/shared";
+import { generateId } from "@timesheet-ai/shared";
+import { SurrealDbTag } from "../connection";
 
-export const storeRawPayload = async (
-  db: Surreal,
-  input: {
-    organizationId: string;
-    source: string;
-    connectionId: string;
-    externalEventId: string;
-    payload: unknown;
-    checksum: string;
-  }
-): Promise<Result<RawEventPayload>> => {
-  const id = generateId("raw");
-  const recordId = `raw_event_payload:${id}`;
+export const storeRawPayload = (input: {
+  organizationId: string;
+  source: string;
+  connectionId: string;
+  externalEventId: string;
+  payload: unknown;
+  checksum: string;
+}) =>
+  Effect.gen(function*() {
+    const db = yield* SurrealDbTag;
+    const id = generateId("raw");
+    const recordId = `raw_event_payload:${id}`;
 
-  const [created] = (await db.create(recordId, {
-    organizationId: `organization:${input.organizationId}`,
-    source: input.source,
-    connectionId: `integration_connection:${input.connectionId}`,
-    externalEventId: input.externalEventId,
-    payload: input.payload,
-    checksum: input.checksum,
-  })) as unknown as [RawEventPayload];
+    const [created] = (yield* db.create(recordId, {
+      organizationId: `organization:${input.organizationId}`,
+      source: input.source,
+      connectionId: `integration_connection:${input.connectionId}`,
+      externalEventId: input.externalEventId,
+      payload: input.payload,
+      checksum: input.checksum,
+    })) as unknown as [RawEventPayload];
 
-  if (!created) {
-    return err("Failed to store raw payload");
-  }
-  return ok(created as RawEventPayload);
-};
+    if (!created) {
+      return yield* Effect.fail(
+        new NotFoundError({ resource: "RawPayload", id }),
+      );
+    }
+    return created;
+  });
 
-export const storeNormalizedEvent = async (
-  db: Surreal,
-  event: Omit<NormalizedEvent, "id">
-): Promise<Result<NormalizedEvent>> => {
-  const id = generateId("evt");
-  const recordId = `normalized_event:${id}`;
+export const storeNormalizedEvent = (event: Omit<NormalizedEvent, "id">) =>
+  Effect.gen(function*() {
+    const db = yield* SurrealDbTag;
+    const id = generateId("evt");
+    const recordId = `normalized_event:${id}`;
 
-  const [created] = (await db.create(recordId, event)) as unknown as [
-    NormalizedEvent,
-  ];
+    const [created] = (yield* db.create(recordId, event)) as unknown as [
+      NormalizedEvent,
+    ];
 
-  if (!created) {
-    return err("Failed to store normalized event");
-  }
-  return ok(created as NormalizedEvent);
-};
+    if (!created) {
+      return yield* Effect.fail(
+        new NotFoundError({ resource: "NormalizedEvent", id }),
+      );
+    }
+    return created;
+  });
 
-export const getEventsByUserAndDateRange = async (
-  db: Surreal,
+export const getEventsByUserAndDateRange = (
   canonicalUserId: string,
   dateStart: string,
-  dateEnd: string
-): Promise<NormalizedEvent[]> => {
-  const [result] = (await db.query(
-    `SELECT * FROM normalized_event
-     WHERE canonicalUserId = $userId
-     AND eventTime >= $start
-     AND eventTime <= $end
-     ORDER BY eventTime ASC`,
-    {
-      userId: `canonical_user:${canonicalUserId}`,
-      start: dateStart,
-      end: dateEnd,
-    }
-  )) as unknown as [NormalizedEvent[]];
-  return (result ?? []) as NormalizedEvent[];
-};
+  dateEnd: string,
+) =>
+  Effect.gen(function*() {
+    const db = yield* SurrealDbTag;
+    const [result] = (yield* db.query(
+      `SELECT * FROM normalized_event
+       WHERE canonicalUserId = $userId
+       AND eventTime >= $start
+       AND eventTime <= $end
+       ORDER BY eventTime ASC`,
+      {
+        userId: `canonical_user:${canonicalUserId}`,
+        start: dateStart,
+        end: dateEnd,
+      },
+    )) as unknown as [NormalizedEvent[]];
+    return (result ?? []) as NormalizedEvent[];
+  });

@@ -1,38 +1,46 @@
-import { createLogger } from "@timesheet-ai/observability";
-import type { Surreal } from "surrealdb";
+import { Effect } from "effect";
+import { logDebug, logError, logInfo, logWarn } from "@timesheet-ai/observability";
 import { INDEX_DEFINITIONS } from "./schema/indexes";
 import { TABLE_DEFINITIONS } from "./schema/tables";
+import { SurrealDbTag } from "./connection";
 
-const log = createLogger({ module: "db:migration" });
+export const runMigrations = Effect.gen(function*() {
+  const db = yield* SurrealDbTag;
 
-export const runMigrations = async (db: Surreal): Promise<void> => {
-  log.info("Running schema migrations...", {
+  yield* logInfo("Running schema migrations...", {
     tables: TABLE_DEFINITIONS.length,
     indexes: INDEX_DEFINITIONS.length,
   });
 
-  for (const statement of TABLE_DEFINITIONS) {
-    try {
-      await db.query(statement);
-    } catch (err) {
-      log.error("Schema statement failed", {
-        statement: statement.slice(0, 80),
-        error: String(err),
+  yield* Effect.forEach(TABLE_DEFINITIONS, (stmt) =>
+    Effect.gen(function*() {
+      yield* db.query(stmt);
+      yield* logDebug("Schema applied", {
+        statement: stmt.slice(0, 60),
       });
-      throw err;
-    }
-  }
+    }).pipe(
+      Effect.catchAll((e) =>
+        Effect.gen(function*() {
+          yield* logError("Schema failed", {
+            statement: stmt.slice(0, 60),
+            error: String(e),
+          });
+          return yield* Effect.fail(e);
+        }),
+      ),
+    ),
+  );
 
-  for (const statement of INDEX_DEFINITIONS) {
-    try {
-      await db.query(statement);
-    } catch (err) {
-      log.warn("Index statement skipped (may already exist)", {
-        statement: statement.slice(0, 80),
-        error: String(err),
-      });
-    }
-  }
+  yield* Effect.forEach(INDEX_DEFINITIONS, (stmt) =>
+    db.query(stmt).pipe(
+      Effect.catchAll((e) =>
+        logWarn("Index skipped", {
+          statement: stmt.slice(0, 60),
+          error: String(e),
+        }),
+      ),
+    ),
+  );
 
-  log.info("Schema migrations complete");
-};
+  yield* logInfo("Schema migrations complete");
+});

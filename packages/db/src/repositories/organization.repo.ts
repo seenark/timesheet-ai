@@ -1,55 +1,60 @@
+import { Effect } from "effect";
 import type {
   CreateOrganizationInput,
   Organization,
 } from "@timesheet-ai/domain";
-import { err, generateId, ok, type Result } from "@timesheet-ai/shared";
-import type { Surreal } from "surrealdb";
+import { NotFoundError } from "@timesheet-ai/shared";
+import { generateId } from "@timesheet-ai/shared";
+import { SurrealDbTag } from "../connection";
 
 const TABLE = "organization";
 
-export const createOrganization = async (
-  db: Surreal,
-  input: CreateOrganizationInput
-): Promise<Result<Organization>> => {
-  const id = generateId("org");
-  const recordId = `${TABLE}:${id}`;
+export const createOrganization = (input: CreateOrganizationInput) =>
+  Effect.gen(function*() {
+    const db = yield* SurrealDbTag;
+    const id = generateId("org");
+    const recordId = `${TABLE}:${id}`;
 
-  const [created] = (await db.create(recordId, {
-    name: input.name,
-    slug: input.slug,
-  })) as unknown as [Organization];
+    const [created] = (yield* db.create(recordId, {
+      name: input.name,
+      slug: input.slug,
+    })) as unknown as [Organization];
 
-  if (!created) {
-    return err("Failed to create organization");
-  }
-  return ok(created as Organization);
-};
+    if (!created) {
+      return yield* Effect.fail(
+        new NotFoundError({ resource: "Organization", id }),
+      );
+    }
+    return created;
+  });
 
-export const getOrganization = async (
-  db: Surreal,
-  id: string
-): Promise<Result<Organization>> => {
-  const result = (await db.select(
-    `${TABLE}:${id}`
-  )) as unknown as Organization | null;
-  if (!result) {
-    return err("Organization not found");
-  }
-  return ok(result as Organization);
-};
+export const getOrganization = (id: string) =>
+  Effect.gen(function*() {
+    const db = yield* SurrealDbTag;
+    const result = (yield* db.select(`${TABLE}:${id}`)) as unknown as
+      | Organization
+      | null;
+    if (!result) {
+      return yield* Effect.fail(
+        new NotFoundError({ resource: "Organization", id }),
+      );
+    }
+    return result;
+  });
 
-export const getOrganizationBySlug = async (
-  db: Surreal,
-  slug: string
-): Promise<Result<Organization>> => {
-  const queryResult = (await db.query(
-    "SELECT * FROM organization WHERE slug = $slug LIMIT 1",
-    { slug }
-  )) as unknown as [Organization[]];
+export const getOrganizationBySlug = (slug: string) =>
+  Effect.gen(function*() {
+    const db = yield* SurrealDbTag;
+    const [result] = (yield* db.query(
+      "SELECT * FROM organization WHERE slug = $slug LIMIT 1",
+      { slug },
+    )) as unknown as [Organization[]];
 
-  const org = queryResult[0]?.[0];
-  if (!org) {
-    return err("Organization not found");
-  }
-  return ok(org as Organization);
-};
+    const org = result?.[0];
+    if (!org) {
+      return yield* Effect.fail(
+        new NotFoundError({ resource: "Organization", id: slug }),
+      );
+    }
+    return org;
+  });
