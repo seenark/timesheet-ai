@@ -38,9 +38,28 @@ export const timesheetRoutes = new Elysia({ prefix: "/timesheet" }).get(
         );
       }
 
-      const summaries = query.userId
-        ? yield* listSummariesByScope("user", query.userId, dateStart, dateEnd)
-        : yield* listSummariesByOrgDateRange(query.orgId, dateStart, dateEnd);
+      let summaries;
+      if (query.projectId) {
+        summaries = yield* listSummariesByScope(
+          "project",
+          query.projectId,
+          dateStart,
+          dateEnd
+        );
+      } else if (query.userId) {
+        summaries = yield* listSummariesByScope(
+          "user",
+          query.userId,
+          dateStart,
+          dateEnd
+        );
+      } else {
+        summaries = yield* listSummariesByOrgDateRange(
+          query.orgId,
+          dateStart,
+          dateEnd
+        );
+      }
 
       const totalMinutes = workUnits.reduce(
         (sum, wu) => sum + wu.estimatedMinutes,
