@@ -11,7 +11,8 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@timesheet-ai/shared": "workspace:*"
+    "@timesheet-ai/shared": "workspace:*",
+    "effect": "catalog:"
   },
   "devDependencies": {
     "@timesheet-ai/config": "workspace:*",

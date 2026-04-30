@@ -16,6 +16,7 @@
     "@timesheet-ai/observability": "workspace:*",
     "@timesheet-ai/shared": "workspace:*",
     "dotenv": "catalog:",
+    "effect": "catalog:",
     "surrealdb": "^1.3.0"
   },
   "devDependencies": {
