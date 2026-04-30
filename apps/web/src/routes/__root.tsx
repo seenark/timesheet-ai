@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   createRootRouteWithContext,
   HeadContent,
@@ -6,7 +7,6 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Toaster } from "@timesheet-ai/ui/components/sonner";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import Header from "../components/header";
 

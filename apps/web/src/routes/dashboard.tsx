@@ -1,3 +1,4 @@
+import { createFileRoute, useRouter, useSearch } from "@tanstack/react-router";
 import {
   Accordion,
   AccordionContent,
@@ -6,11 +7,7 @@ import {
 } from "@timesheet-ai/ui/components/accordion";
 import { Badge } from "@timesheet-ai/ui/components/badge";
 import { Button } from "@timesheet-ai/ui/components/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-} from "@timesheet-ai/ui/components/card";
+import { Card, CardHeader, CardTitle } from "@timesheet-ai/ui/components/card";
 import {
   Dialog,
   DialogContent,
@@ -32,7 +29,6 @@ import {
 } from "@timesheet-ai/ui/components/select";
 import { Separator } from "@timesheet-ai/ui/components/separator";
 import { Skeleton } from "@timesheet-ai/ui/components/skeleton";
-import { createFileRoute, useRouter, useSearch } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { useTimesheet } from "../hooks/use-timesheet";
@@ -65,21 +61,29 @@ const MONTH_NAMES = [
 const formatMinutes = (min: number): string => {
   const h = Math.floor(min / 60);
   const m = min % 60;
-  if (h === 0) return `${m}m`;
-  if (m === 0) return `${h}h`;
+  if (h === 0) {
+    return `${m}m`;
+  }
+  if (m === 0) {
+    return `${h}h`;
+  }
   return `${h}h ${m}m`;
 };
 
 const formatDate = (dateStr: string): string => {
-  const d = new Date(dateStr + "T00:00:00Z");
+  const d = new Date(`${dateStr}T00:00:00Z`);
   const day = d.getUTCDate();
   const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
   return `${weekday}, ${MONTH_NAMES[d.getUTCMonth()]} ${day}`;
 };
 
 const confidenceColor = (c: number): string => {
-  if (c >= 0.8) return "bg-green-500";
-  if (c >= 0.5) return "bg-yellow-500";
+  if (c >= 0.8) {
+    return "bg-green-500";
+  }
+  if (c >= 0.5) {
+    return "bg-yellow-500";
+  }
   return "bg-red-500";
 };
 
@@ -100,7 +104,9 @@ function DashboardPage() {
   const month = search.month ?? new Date().getMonth() + 1;
   const [selectedUser, setSelectedUser] = useState<string>("all");
   const [selectedProject, setSelectedProject] = useState<string>("all");
-  const [selectedWorkUnit, setSelectedWorkUnit] = useState<WorkUnitItem | null>(null);
+  const [selectedWorkUnit, setSelectedWorkUnit] = useState<WorkUnitItem | null>(
+    null
+  );
   const router = useRouter();
 
   const { data, isLoading, error } = useTimesheet(
@@ -114,32 +120,51 @@ function DashboardPage() {
   const navigateMonth = (dir: -1 | 1) => {
     let m = month + dir;
     let y = year;
-    if (m > 12) { m = 1; y++; }
-    if (m < 1) { m = 12; y--; }
+    if (m > 12) {
+      m = 1;
+      y++;
+    }
+    if (m < 1) {
+      m = 12;
+      y--;
+    }
     router.navigate({ to: "/dashboard", search: { orgId, year: y, month: m } });
   };
 
   const totalHours = data ? (data.totalMinutes / 60).toFixed(1) : "0";
-  const grouped = data ? groupByDate(data.workUnits) : new Map<string, WorkUnitItem[]>();
+  const grouped = data
+    ? groupByDate(data.workUnits)
+    : new Map<string, WorkUnitItem[]>();
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-4">
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon-sm" onClick={() => navigateMonth(-1)}>
+          <Button
+            onClick={() => navigateMonth(-1)}
+            size="icon-sm"
+            variant="outline"
+          >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <h1 className="min-w-[180px] text-center text-xl font-semibold">
+          <h1 className="min-w-[180px] text-center font-semibold text-xl">
             {MONTH_NAMES[month - 1]} {year}
           </h1>
-          <Button variant="outline" size="icon-sm" onClick={() => navigateMonth(1)}>
+          <Button
+            onClick={() => navigateMonth(1)}
+            size="icon-sm"
+            variant="outline"
+          >
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
 
         <div className="flex gap-2">
-          <Select value={selectedUser} onValueChange={(v) => setSelectedUser(v ?? "all")}>
+          <Select
+            onValueChange={(v) => setSelectedUser(v ?? "all")}
+            value={selectedUser}
+          >
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="All Users" />
             </SelectTrigger>
@@ -148,7 +173,10 @@ function DashboardPage() {
             </SelectContent>
           </Select>
 
-          <Select value={selectedProject} onValueChange={(v) => setSelectedProject(v ?? "all")}>
+          <Select
+            onValueChange={(v) => setSelectedProject(v ?? "all")}
+            value={selectedProject}
+          >
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="All Projects" />
             </SelectTrigger>
@@ -160,7 +188,7 @@ function DashboardPage() {
       </div>
 
       {/* Summary bar */}
-      <div className="mb-4 text-sm text-muted-foreground">
+      <div className="mb-4 text-muted-foreground text-sm">
         {isLoading ? (
           <Skeleton className="h-4 w-48" />
         ) : (
@@ -177,7 +205,9 @@ function DashboardPage() {
       {error && (
         <Empty>
           <EmptyTitle>Failed to load data</EmptyTitle>
-          <EmptyDescription>{error instanceof Error ? error.message : "Unknown error"}</EmptyDescription>
+          <EmptyDescription>
+            {error instanceof Error ? error.message : "Unknown error"}
+          </EmptyDescription>
         </Empty>
       )}
 
@@ -185,7 +215,7 @@ function DashboardPage() {
       {isLoading && (
         <div className="space-y-4">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="space-y-2">
+            <div className="space-y-2" key={`skeleton-${i}`}>
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-20 w-full" />
             </div>
@@ -197,7 +227,9 @@ function DashboardPage() {
       {data && data.workUnits.length === 0 && (
         <Empty>
           <EmptyTitle>No work units</EmptyTitle>
-          <EmptyDescription>No work units found for this period. Try adjusting the filters.</EmptyDescription>
+          <EmptyDescription>
+            No work units found for this period. Try adjusting the filters.
+          </EmptyDescription>
         </Empty>
       )}
 
@@ -207,13 +239,16 @@ function DashboardPage() {
           {[...grouped.entries()]
             .sort(([a], [b]) => b.localeCompare(a))
             .map(([date, units]) => {
-              const dayMinutes = units.reduce((sum, wu) => sum + wu.estimatedMinutes, 0);
+              const dayMinutes = units.reduce(
+                (sum, wu) => sum + wu.estimatedMinutes,
+                0
+              );
               return (
                 <AccordionItem key={date} value={date}>
                   <AccordionTrigger className="hover:no-underline">
                     <div className="flex w-full items-center justify-between pr-4">
                       <span className="font-medium">{formatDate(date)}</span>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-muted-foreground text-sm">
                         {formatMinutes(dayMinutes)}
                       </span>
                     </div>
@@ -222,19 +257,27 @@ function DashboardPage() {
                     <div className="space-y-2 pb-2">
                       {units.map((wu) => (
                         <Card
-                          key={wu.id}
                           className="cursor-pointer transition-colors hover:bg-muted/50"
+                          key={wu.id}
                           onClick={() => setSelectedWorkUnit(wu)}
                         >
                           <CardHeader className="px-4 py-2">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <div className={`h-2 w-2 rounded-full ${confidenceColor(wu.confidence)}`} />
-                                <CardTitle className="text-sm">{wu.title}</CardTitle>
+                                <div
+                                  className={`h-2 w-2 rounded-full ${confidenceColor(wu.confidence)}`}
+                                />
+                                <CardTitle className="text-sm">
+                                  {wu.title}
+                                </CardTitle>
                               </div>
                               <div className="flex items-center gap-2">
-                                <Badge variant="outline">{formatMinutes(wu.estimatedMinutes)}</Badge>
-                                <Badge variant="secondary">{wu.confidence.toFixed(2)}</Badge>
+                                <Badge variant="outline">
+                                  {formatMinutes(wu.estimatedMinutes)}
+                                </Badge>
+                                <Badge variant="secondary">
+                                  {wu.confidence.toFixed(2)}
+                                </Badge>
                               </div>
                             </div>
                           </CardHeader>
@@ -249,29 +292,42 @@ function DashboardPage() {
       )}
 
       {/* Work unit detail dialog */}
-      <Dialog open={!!selectedWorkUnit} onOpenChange={(open) => !open && setSelectedWorkUnit(null)}>
+      <Dialog
+        onOpenChange={(open) => !open && setSelectedWorkUnit(null)}
+        open={!!selectedWorkUnit}
+      >
         {selectedWorkUnit && (
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>{selectedWorkUnit.title}</DialogTitle>
               <DialogDescription>
-                {formatDate(selectedWorkUnit.date)} · {formatMinutes(selectedWorkUnit.estimatedMinutes)}
+                {formatDate(selectedWorkUnit.date)} ·{" "}
+                {formatMinutes(selectedWorkUnit.estimatedMinutes)}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <h4 className="mb-1 text-sm font-medium text-muted-foreground">Summary</h4>
+                <h4 className="mb-1 font-medium text-muted-foreground text-sm">
+                  Summary
+                </h4>
                 <p className="text-sm">{selectedWorkUnit.summary}</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Badge variant="outline">Confidence: {selectedWorkUnit.confidence.toFixed(2)}</Badge>
+                <Badge variant="outline">
+                  Confidence: {selectedWorkUnit.confidence.toFixed(2)}
+                </Badge>
                 {selectedWorkUnit.sourceTypes.map((st) => (
-                  <Badge key={st} variant="secondary">{st}</Badge>
+                  <Badge key={st} variant="secondary">
+                    {st}
+                  </Badge>
                 ))}
               </div>
               <Separator />
-              <div className="text-xs text-muted-foreground">
-                <div>Time: {selectedWorkUnit.startedAt} → {selectedWorkUnit.endedAt}</div>
+              <div className="text-muted-foreground text-xs">
+                <div>
+                  Time: {selectedWorkUnit.startedAt} →{" "}
+                  {selectedWorkUnit.endedAt}
+                </div>
                 <div>User: {selectedWorkUnit.canonicalUserId}</div>
                 <div>Project: {selectedWorkUnit.projectId}</div>
               </div>

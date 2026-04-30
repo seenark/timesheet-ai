@@ -17,7 +17,7 @@ export const timesheetRoutes = new Elysia({ prefix: "/timesheet" }).get(
       const dateStart = query.dateStart;
       const dateEnd = query.dateEnd;
 
-      let workUnits;
+      let workUnits: WorkUnit[] = [];
       if (query.userId) {
         workUnits = yield* listWorkUnitsByUser(
           query.userId,
@@ -83,9 +83,15 @@ export const timesheetRoutes = new Elysia({ prefix: "/timesheet" }).get(
 function stripRecordPrefixes(wu: WorkUnit) {
   return {
     ...wu,
-    canonicalUserId: String(wu.canonicalUserId ?? "").replace("canonical_user:", ""),
+    canonicalUserId: String(wu.canonicalUserId ?? "").replace(
+      "canonical_user:",
+      ""
+    ),
     id: String(wu.id),
-    organizationId: String(wu.organizationId ?? "").replace("organization:", ""),
+    organizationId: String(wu.organizationId ?? "").replace(
+      "organization:",
+      ""
+    ),
     projectId: String(wu.projectId ?? "").replace("project:", ""),
   };
 }

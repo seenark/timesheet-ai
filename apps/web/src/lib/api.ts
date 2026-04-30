@@ -25,31 +25,31 @@ export async function apiFetch<T>(
 }
 
 export interface TimesheetData {
-  workUnits: WorkUnitItem[];
   summaries: SummaryItem[];
   totalMinutes: number;
   totalWorkUnits: number;
+  workUnits: WorkUnitItem[];
 }
 
 export interface WorkUnitItem {
-  id: string;
-  title: string;
-  summary: string;
-  date: string;
-  estimatedMinutes: number;
-  confidence: number;
-  sourceTypes: string[];
-  projectId: string;
   canonicalUserId: string;
-  startedAt: string;
+  confidence: number;
+  date: string;
   endedAt: string;
+  estimatedMinutes: number;
+  id: string;
+  projectId: string;
+  sourceTypes: string[];
+  startedAt: string;
+  summary: string;
+  title: string;
 }
 
 export interface SummaryItem {
-  id: string;
   date: string;
-  scopeType: string;
+  id: string;
   scopeId: string;
+  scopeType: string;
   summary: string;
 }
 
