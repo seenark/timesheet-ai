@@ -1,5 +1,7 @@
-import { getDb } from "@timesheet-ai/db";
+import { SurrealDb, SurrealDbTag } from "@timesheet-ai/db";
+import { Effect } from "effect";
 import { Elysia } from "elysia";
+import { handleEffectError } from "../lib/effect";
 
 export const healthRoutes = new Elysia({ prefix: "/health" })
   .get("/", () => ({
@@ -8,14 +10,23 @@ export const healthRoutes = new Elysia({ prefix: "/health" })
     timestamp: new Date().toISOString(),
   }))
   .get("/db", async () => {
-    const db = await getDb();
-    await db.query(
-      "SELECT count() AS total FROM organization GROUP BY total LIMIT 1"
-    );
-    return {
-      ok: true as const,
-      status: "healthy",
-      db: "connected",
-      timestamp: new Date().toISOString(),
-    };
+    const effect = Effect.gen(function* () {
+      const db = yield* SurrealDbTag;
+      yield* db.query(
+        "SELECT count() AS total FROM organization GROUP BY total LIMIT 1"
+      );
+      return { db: "connected" as const };
+    }).pipe(Effect.provide(SurrealDb));
+
+    try {
+      const result = await Effect.runPromise(effect);
+      return {
+        ok: true as const,
+        status: "healthy",
+        ...result,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      return handleEffectError(error);
+    }
   });
