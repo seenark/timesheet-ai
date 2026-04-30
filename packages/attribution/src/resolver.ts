@@ -66,7 +66,7 @@ export const attributeEvent = (
       attributionMethod: "inferred",
       canonicalUserId: event.canonicalUserId,
       identityConfidence: event.attribution.identityConfidence ?? 0.7,
-      projectConfidence: event.attribution.projectConfidence ?? 0,
+      projectConfidence: event.attribution.projectConfidence ?? (event.projectId ? 0.5 : 0),
       projectId: event.projectId,
     };
   }
