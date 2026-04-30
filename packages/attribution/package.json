@@ -1,0 +1,22 @@
+{
+  "name": "@timesheet-ai/attribution",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@timesheet-ai/domain": "workspace:*",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "@timesheet-ai/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}
