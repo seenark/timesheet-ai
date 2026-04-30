@@ -6,7 +6,7 @@ import {
   listWorkUnitsByUser,
   SurrealDb,
 } from "@timesheet-ai/db";
-import type { WorkUnit } from "@timesheet-ai/domain";
+import type { DailySummary, WorkUnit } from "@timesheet-ai/domain";
 import { Effect } from "effect";
 import { Elysia, t } from "elysia";
 
@@ -38,7 +38,7 @@ export const timesheetRoutes = new Elysia({ prefix: "/timesheet" }).get(
         );
       }
 
-      let summaries;
+      let summaries: DailySummary[] = [];
       if (query.projectId) {
         summaries = yield* listSummariesByScope(
           "project",

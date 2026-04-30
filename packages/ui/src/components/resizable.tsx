@@ -2,11 +2,11 @@
 
 import { cn } from "@timesheet-ai/ui/lib/utils";
 import {
+  type GroupProps,
+  type PanelProps,
   Group as ResizablePrimitiveGroup,
   Panel as ResizablePrimitivePanel,
   Separator as ResizablePrimitiveSeparator,
-  type GroupProps,
-  type PanelProps,
   type SeparatorProps,
 } from "react-resizable-panels";
 
