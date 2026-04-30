@@ -1,5 +1,5 @@
 import type { ISurrealDb } from "@timesheet-ai/db";
-import { storeNormalizedEvent, storeRawPayload } from "@timesheet-ai/db";
+import { createExternalIdentity, storeNormalizedEvent, storeRawPayload } from "@timesheet-ai/db";
 import type { NormalizedEvent, Source } from "@timesheet-ai/domain";
 import { logError, logInfo, logWarn } from "@timesheet-ai/observability";
 import { Effect } from "effect";
@@ -90,30 +90,33 @@ const tryNormalize = (
 
 const tryExtractIdentities = (
   plugin: {
-    extractIdentities: (raw: unknown) => Effect.Effect<
-      readonly Array<{
-        source: string;
-        externalId: string;
-        email?: string | undefined;
-      }>,
-      IngestionError
-    >;
+    extractIdentities: (
+      raw: unknown
+    ) => Effect.Effect<readonly { source: string; externalId: string; email?: string }[], IngestionError>;
   },
-  rawPayload: unknown
+  rawPayload: unknown,
+  organizationId: string
 ) =>
   Effect.gen(function* () {
     const result = yield* Effect.either(plugin.extractIdentities(rawPayload));
     if (result._tag === "Left") {
       return 0;
     }
+    let count = 0;
     for (const candidate of result.right) {
-      yield* logInfo("Identity candidate found", {
-        source: candidate.source,
-        externalId: candidate.externalId,
-        email: candidate.email,
-      });
+      const stored = yield* Effect.either(
+        createExternalIdentity({
+          organizationId,
+          source: candidate.source as Source,
+          externalId: candidate.externalId,
+          email: candidate.email,
+        })
+      );
+      if (stored._tag === "Right") {
+        count++;
+      }
     }
-    return result.right.length;
+    return count;
   });
 
 const processSinglePayload = (
@@ -166,7 +169,7 @@ const processSinglePayload = (
       organizationId
     );
 
-    const identityCount = yield* tryExtractIdentities(plugin, rawPayload);
+    const identityCount = yield* tryExtractIdentities(plugin, rawPayload, organizationId);
 
     return {
       stored,
