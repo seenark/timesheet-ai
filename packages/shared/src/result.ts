@@ -12,8 +12,10 @@ export const err = <E, T = never>(error: E): Result<T, E> => ({
   error,
 });
 
-export const isOk = <T, E>(result: Result<T, E>): result is { readonly ok: true; readonly value: T } =>
-  result.ok === true;
+export const isOk = <T, E>(
+  result: Result<T, E>
+): result is { readonly ok: true; readonly value: T } => result.ok === true;
 
-export const isErr = <T, E>(result: Result<T, E>): result is { readonly ok: false; readonly error: E } =>
-  result.ok === false;
+export const isErr = <T, E>(
+  result: Result<T, E>
+): result is { readonly ok: false; readonly error: E } => result.ok === false;

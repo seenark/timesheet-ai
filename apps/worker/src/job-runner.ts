@@ -1,15 +1,21 @@
-import type { Surreal } from "surrealdb";
 import { getPendingJobs, updateJobStatus } from "@timesheet-ai/db";
 import { createLogger } from "@timesheet-ai/observability";
-import { type Result, isErr, isOk } from "@timesheet-ai/shared";
+import { isErr, isOk, type Result } from "@timesheet-ai/shared";
+import type { Surreal } from "surrealdb";
 
 const log = createLogger({ module: "worker:job-runner" });
 
-type JobHandler = (db: Surreal, metadata?: Record<string, unknown>) => Promise<Result<void>>;
+type JobHandler = (
+  db: Surreal,
+  metadata?: Record<string, unknown>
+) => Promise<Result<void>>;
 
 const handlers = new Map<string, JobHandler>();
 
-export const registerJobHandler = (jobType: string, handler: JobHandler): void => {
+export const registerJobHandler = (
+  jobType: string,
+  handler: JobHandler
+): void => {
   handlers.set(jobType, handler);
   log.info("Registered job handler", { jobType });
 };
@@ -21,14 +27,20 @@ export const pollAndExecute = async (db: Surreal): Promise<number> => {
   for (const job of pendingJobs) {
     const handler = handlers.get(job.jobType);
     if (!handler) {
-      log.warn("No handler for job type", { jobType: job.jobType, jobId: job.id });
+      log.warn("No handler for job type", {
+        jobType: job.jobType,
+        jobId: job.id,
+      });
       continue;
     }
 
     await updateJobStatus(db, job.id, "running");
     log.info("Executing job", { jobId: job.id, jobType: job.jobType });
 
-    const result = await handler(db, job.metadata as Record<string, unknown> | undefined);
+    const result = await handler(
+      db,
+      job.metadata as Record<string, unknown> | undefined
+    );
 
     if (isOk(result)) {
       await updateJobStatus(db, job.id, "completed");

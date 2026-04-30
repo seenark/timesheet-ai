@@ -1,5 +1,5 @@
-import { AppError } from "@timesheet-ai/shared";
 import { createLogger } from "@timesheet-ai/observability";
+import { AppError } from "@timesheet-ai/shared";
 import { Elysia } from "elysia";
 
 const log = createLogger({ module: "api:error-handler" });
@@ -20,6 +20,7 @@ export const errorHandler = new Elysia().onError(({ code, error, set }) => {
   return {
     ok: false as const,
     error: "INTERNAL_ERROR",
-    message: code === "VALIDATION" ? "Validation error" : "Internal server error",
+    message:
+      code === "VALIDATION" ? "Validation error" : "Internal server error",
   };
 });

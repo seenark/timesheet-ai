@@ -1,5 +1,10 @@
 import { describe, expect, it } from "bun:test";
-import type { CanonicalUser, NormalizedEvent, Organization, Project } from "../src/index";
+import type {
+  CanonicalUser,
+  NormalizedEvent,
+  Organization,
+  Project,
+} from "../src/index";
 
 describe("domain types compile correctly", () => {
   it("Organization has required fields", () => {

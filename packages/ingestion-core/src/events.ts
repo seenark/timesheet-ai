@@ -8,9 +8,9 @@ export type IngestionEventType =
   | "identity.candidate.found";
 
 export interface IngestionEvent {
-  readonly type: IngestionEventType;
-  readonly source: string;
   readonly connectionId: string;
-  readonly timestamp: string;
   readonly metadata?: Record<string, unknown>;
+  readonly source: string;
+  readonly timestamp: string;
+  readonly type: IngestionEventType;
 }

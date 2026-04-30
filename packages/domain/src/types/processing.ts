@@ -1,60 +1,60 @@
 import type { ReviewStatus, SummaryScopeType, SummaryStatus } from "./enums";
 
 export interface ActivitySession {
-  readonly id: string;
-  readonly organizationId: string;
   readonly canonicalUserId: string;
-  readonly startedAt: string;
+  readonly confidence: number;
   readonly endedAt: string;
   readonly eventIds: readonly string[];
+  readonly id: string;
+  readonly organizationId: string;
   readonly projectIds: readonly string[];
-  readonly confidence: number;
+  readonly startedAt: string;
 }
 
 export interface ActivityCluster {
+  readonly canonicalUserId: string;
+  readonly clusterType: string;
+  readonly confidence: number;
+  readonly endedAt: string;
+  readonly eventIds: readonly string[];
   readonly id: string;
   readonly organizationId: string;
-  readonly canonicalUserId: string;
   readonly projectId?: string;
   readonly sessionId?: string;
-  readonly eventIds: readonly string[];
-  readonly topicLabel?: string;
-  readonly clusterType: string;
   readonly startedAt: string;
-  readonly endedAt: string;
-  readonly confidence: number;
+  readonly topicLabel?: string;
 }
 
 export interface WorkUnit {
-  readonly id: string;
-  readonly organizationId: string;
   readonly canonicalUserId: string;
-  readonly projectId: string;
+  readonly confidence: number;
   readonly date: string;
-
-  readonly title: string;
-  readonly summary: string;
-  readonly evidenceEventIds: readonly string[];
-
-  readonly startedAt: string;
   readonly endedAt: string;
   readonly estimatedMinutes: number;
-
-  readonly sourceTypes: readonly string[];
-  readonly confidence: number;
-  readonly reviewStatus: ReviewStatus;
+  readonly evidenceEventIds: readonly string[];
 
   readonly generationVersion: number;
+  readonly id: string;
+  readonly organizationId: string;
+  readonly projectId: string;
+  readonly reviewStatus: ReviewStatus;
+
+  readonly sourceTypes: readonly string[];
+
+  readonly startedAt: string;
+  readonly summary: string;
+
+  readonly title: string;
 }
 
 export interface DailySummary {
+  readonly date: string;
+  readonly generatedAt: string;
   readonly id: string;
   readonly organizationId: string;
-  readonly scopeType: SummaryScopeType;
   readonly scopeId: string;
-  readonly date: string;
+  readonly scopeType: SummaryScopeType;
+  readonly status: SummaryStatus;
   readonly summary: string;
   readonly workUnitIds: readonly string[];
-  readonly generatedAt: string;
-  readonly status: SummaryStatus;
 }

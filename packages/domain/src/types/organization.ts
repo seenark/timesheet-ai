@@ -1,8 +1,8 @@
 export interface Organization {
+  readonly createdAt: string;
   readonly id: string;
   readonly name: string;
   readonly slug: string;
-  readonly createdAt: string;
 }
 
 export interface CreateOrganizationInput {

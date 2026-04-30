@@ -1,5 +1,5 @@
-import type { Surreal } from "surrealdb";
 import { createLogger } from "@timesheet-ai/observability";
+import type { Surreal } from "surrealdb";
 import { INDEX_DEFINITIONS } from "./schema/indexes";
 import { TABLE_DEFINITIONS } from "./schema/tables";
 

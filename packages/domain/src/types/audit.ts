@@ -1,22 +1,22 @@
 export interface AuditLog {
-  readonly id: string;
-  readonly organizationId: string;
   readonly action: string;
   readonly actorUserId: string;
-  readonly targetType: string;
-  readonly targetId: string;
-  readonly previousValue?: unknown;
+  readonly id: string;
   readonly newValue?: unknown;
+  readonly organizationId: string;
+  readonly previousValue?: unknown;
+  readonly targetId: string;
+  readonly targetType: string;
   readonly timestamp: string;
 }
 
 export interface ReviewDecision {
+  readonly decision: "approved" | "flagged" | "rejected";
   readonly id: string;
+  readonly note?: string;
   readonly organizationId: string;
   readonly reviewerId: string;
-  readonly targetType: "work-unit" | "summary" | "identity" | "mapping";
   readonly targetId: string;
-  readonly decision: "approved" | "flagged" | "rejected";
-  readonly note?: string;
+  readonly targetType: "work-unit" | "summary" | "identity" | "mapping";
   readonly timestamp: string;
 }

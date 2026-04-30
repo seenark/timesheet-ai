@@ -20,7 +20,9 @@ describe("createLogger", () => {
 
   it("info() calls console.info with structured payload", () => {
     const originalConsoleInfo = console.info;
-    const spy = mock(() => {});
+    const spy = mock(() => {
+      // intentionally empty spy
+    });
     console.info = spy;
 
     const log = createLogger({ app: "test" });

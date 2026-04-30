@@ -9,7 +9,9 @@ export const healthRoutes = new Elysia({ prefix: "/health" })
   }))
   .get("/db", async () => {
     const db = await getDb();
-    await db.query("SELECT count() AS total FROM organization GROUP BY total LIMIT 1");
+    await db.query(
+      "SELECT count() AS total FROM organization GROUP BY total LIMIT 1"
+    );
     return {
       ok: true as const,
       status: "healthy",

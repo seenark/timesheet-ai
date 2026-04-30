@@ -1,3 +1,4 @@
+// biome-ignore lint/performance/noBarrelFile: Package exports require barrel file
 export { closeDb, getDb } from "./connection";
 export { runMigrations } from "./migration";
 export {

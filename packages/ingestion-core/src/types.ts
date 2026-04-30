@@ -1,42 +1,41 @@
 import type { NormalizedEvent, Source } from "@timesheet-ai/domain";
 
 export interface IngestionResult {
-  readonly rawPayloadCount: number;
-  readonly normalizedEventCount: number;
-  readonly newIdentityCandidates: number;
   readonly cursor?: string;
   readonly errors: readonly IngestionError[];
+  readonly newIdentityCandidates: number;
+  readonly normalizedEventCount: number;
+  readonly rawPayloadCount: number;
 }
 
 export interface IngestionError {
-  readonly message: string;
-  readonly source: string;
   readonly externalId?: string;
+  readonly message: string;
   readonly raw?: unknown;
+  readonly source: string;
 }
 
 export interface ExternalIdentityCandidate {
-  readonly source: Source;
-  readonly externalId: string;
-  readonly username?: string;
-  readonly email?: string;
   readonly displayName?: string;
+  readonly email?: string;
+  readonly externalId: string;
+  readonly source: Source;
+  readonly username?: string;
 }
 
 export interface SourceScopeCandidate {
-  readonly scopeType: "repo" | "workspace" | "board" | "channel" | "server";
   readonly externalScopeId: string;
   readonly name?: string;
+  readonly scopeType: "repo" | "workspace" | "board" | "channel" | "server";
 }
 
 export interface IngestionPlugin {
-  readonly source: Source;
-
-  sync(connectionId: string, cursor?: string): Promise<IngestionResult>;
-
-  normalize(rawPayload: unknown): Promise<NormalizedEvent[]>;
-
   extractIdentities(rawPayload: unknown): Promise<ExternalIdentityCandidate[]>;
 
   extractScopes(rawPayload: unknown): Promise<SourceScopeCandidate[]>;
+
+  normalize(rawPayload: unknown): Promise<NormalizedEvent[]>;
+  readonly source: Source;
+
+  sync(connectionId: string, cursor?: string): Promise<IngestionResult>;
 }

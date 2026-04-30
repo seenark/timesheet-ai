@@ -1,13 +1,15 @@
-import { Surreal } from "surrealdb";
 import { env } from "@timesheet-ai/env/server";
 import { createLogger } from "@timesheet-ai/observability";
+import { Surreal } from "surrealdb";
 
 const log = createLogger({ module: "db:connection" });
 
 let dbInstance: Surreal | null = null;
 
 export const getDb = async (): Promise<Surreal> => {
-  if (dbInstance) return dbInstance;
+  if (dbInstance) {
+    return dbInstance;
+  }
 
   const db = new Surreal();
   await db.connect(env.SURREALDB_URL, {

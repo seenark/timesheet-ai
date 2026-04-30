@@ -1,12 +1,12 @@
 import { getDb, runMigrations } from "@timesheet-ai/db";
 import { createLogger } from "@timesheet-ai/observability";
+import { ok } from "@timesheet-ai/shared";
 import { pollAndExecute, registerJobHandler } from "./job-runner";
 import { runHealthCheck } from "./jobs/health-check";
-import { ok } from "@timesheet-ai/shared";
 
 const log = createLogger({ app: "worker" });
 
-const POLL_INTERVAL_MS = 5_000;
+const POLL_INTERVAL_MS = 5000;
 
 const main = async () => {
   log.info("Worker starting...");

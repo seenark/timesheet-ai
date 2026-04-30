@@ -3,14 +3,19 @@ export interface LogContext {
 }
 
 export interface Logger {
+  readonly child: (context: LogContext) => Logger;
+  readonly debug: (message: string, extra?: LogContext) => void;
+  readonly error: (message: string, extra?: LogContext) => void;
   readonly info: (message: string, extra?: LogContext) => void;
   readonly warn: (message: string, extra?: LogContext) => void;
-  readonly error: (message: string, extra?: LogContext) => void;
-  readonly debug: (message: string, extra?: LogContext) => void;
-  readonly child: (context: LogContext) => Logger;
 }
 
-const serialize = (level: string, baseContext: LogContext, message: string, extra?: LogContext): string =>
+const serialize = (
+  level: string,
+  baseContext: LogContext,
+  message: string,
+  extra?: LogContext
+): string =>
   JSON.stringify({
     level,
     msg: message,
