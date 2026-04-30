@@ -1,0 +1,25 @@
+{
+  "name": "@timesheet-ai/ai",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@timesheet-ai/domain": "workspace:*",
+    "@mastra/core": "^0.9.0",
+    "ai": "^4.3.0",
+    "effect": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@timesheet-ai/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -5,6 +5,7 @@
     {
       "includes": [
         "packages/attribution/src/index.ts",
+        "packages/ai/src/index.ts",
         "packages/db/src/index.ts",
         "packages/identity/src/index.ts",
         "packages/ingestion-core/src/index.ts",
