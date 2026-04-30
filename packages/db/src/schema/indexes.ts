@@ -27,4 +27,10 @@ export const INDEX_DEFINITIONS = [
   "DEFINE INDEX idx_audit_timestamp ON audit_log COLUMN timestamp;",
 
   "DEFINE INDEX idx_raw_event_dedupe ON raw_event_payload COLUMNS connectionId, externalEventId;",
+
+  "DEFINE INDEX idx_session_user ON activity_session COLUMN canonicalUserId;",
+  "DEFINE INDEX idx_session_time ON activity_session COLUMNS startedAt, endedAt;",
+  "DEFINE INDEX idx_cluster_session ON activity_cluster COLUMN sessionId;",
+  "DEFINE INDEX idx_cluster_user ON activity_cluster COLUMN canonicalUserId;",
+  "DEFINE INDEX idx_cluster_project ON activity_cluster COLUMN projectId;",
 ] as const;

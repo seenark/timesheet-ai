@@ -1,10 +1,13 @@
 import {
   listUnmatchedIdentities,
   listUsersByOrg,
-  setIdentitiesStatus,
   SurrealDb,
+  setIdentitiesStatus,
 } from "@timesheet-ai/db";
-import { resolveIdentity, type IdentityCandidate } from "@timesheet-ai/identity";
+import {
+  type IdentityCandidate,
+  resolveIdentity,
+} from "@timesheet-ai/identity";
 import { logError, logInfo } from "@timesheet-ai/observability";
 import { Effect } from "effect";
 
@@ -45,11 +48,7 @@ export const runIdentityResolve = (
         displayName: identity.displayName,
       };
 
-      const result = resolveIdentity(
-        candidate,
-        canonicalUsers,
-        []
-      );
+      const result = resolveIdentity(candidate, canonicalUsers, []);
 
       if (result.action === "auto-link" && result.canonicalUserId) {
         toAutoLink.push(identity.id);

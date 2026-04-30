@@ -1,12 +1,12 @@
+import { attributeEvent } from "@timesheet-ai/attribution";
 import {
   enrichEvent,
   listEventsForEnrichment,
   SurrealDb,
 } from "@timesheet-ai/db";
-import { attributeEvent } from "@timesheet-ai/attribution";
+import type { NormalizedEvent } from "@timesheet-ai/domain";
 import { logError, logInfo } from "@timesheet-ai/observability";
 import { Effect } from "effect";
-import type { NormalizedEvent } from "@timesheet-ai/domain";
 
 export const runEventEnrichment = (
   metadata?: Record<string, unknown>

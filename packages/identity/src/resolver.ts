@@ -1,17 +1,17 @@
 import type { CanonicalUser, ExternalIdentity } from "@timesheet-ai/domain";
 import {
-  AUTO_LINK_THRESHOLD,
-  SUGGEST_THRESHOLD,
-  type IdentityCandidate,
-  type MatchSignal,
-  type ResolutionResult,
-} from "./types";
-import {
   matchByDisplayNameSimilar,
   matchByEmailExact,
   matchByUsernameExact,
   scoreCandidate,
 } from "./matcher";
+import {
+  AUTO_LINK_THRESHOLD,
+  type IdentityCandidate,
+  type MatchSignal,
+  type ResolutionResult,
+  SUGGEST_THRESHOLD,
+} from "./types";
 
 export const resolveIdentity = (
   candidate: IdentityCandidate,
@@ -37,7 +37,9 @@ export const resolveIdentity = (
 
   if (candidate.email) {
     const emailMatch = matchByEmailExact(candidate.email, canonicalUsers);
-    if (emailMatch) signals.push(emailMatch);
+    if (emailMatch) {
+      signals.push(emailMatch);
+    }
   }
 
   if (candidate.username) {
@@ -45,7 +47,9 @@ export const resolveIdentity = (
       candidate.username,
       canonicalUsers
     );
-    if (usernameMatch) signals.push(usernameMatch);
+    if (usernameMatch) {
+      signals.push(usernameMatch);
+    }
   }
 
   if (candidate.displayName) {
@@ -53,7 +57,9 @@ export const resolveIdentity = (
       candidate.displayName,
       canonicalUsers
     );
-    if (nameMatch) signals.push(nameMatch);
+    if (nameMatch) {
+      signals.push(nameMatch);
+    }
   }
 
   const best = scoreCandidate(signals);

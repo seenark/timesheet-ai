@@ -1,11 +1,16 @@
 import type { Source } from "@timesheet-ai/domain";
 
 export interface MatchSignal {
-  readonly canonicalUserId: string;
   readonly canonicalUserDisplayName: string;
   readonly canonicalUserEmail?: string;
+  readonly canonicalUserId: string;
   readonly confidence: number;
-  readonly method: "email-exact" | "email-domain" | "username-exact" | "username-similar" | "display-name-similar";
+  readonly method:
+    | "email-exact"
+    | "email-domain"
+    | "username-exact"
+    | "username-similar"
+    | "display-name-similar";
 }
 
 export interface ResolutionResult {

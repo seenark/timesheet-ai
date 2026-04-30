@@ -4,10 +4,10 @@ import { GitIngestionPlugin } from "@timesheet-ai/ingestion-git";
 import { logInfo } from "@timesheet-ai/observability";
 import { Effect } from "effect";
 import { pollAndExecute, registerJobHandler } from "./job-runner";
+import { runEventEnrichment } from "./jobs/event-enrichment";
 import { runHealthCheck } from "./jobs/health-check";
 import { runIdentityResolve } from "./jobs/identity-resolve";
 import { runIngestionSync } from "./jobs/ingestion-sync";
-import { runEventEnrichment } from "./jobs/event-enrichment";
 
 const POLL_INTERVAL_MS = 5000;
 

@@ -28,7 +28,9 @@ export const createReviewDecision = (input: {
     })) as unknown as [ReviewDecision];
 
     if (!created) {
-      return yield* Effect.fail(new NotFoundError({ resource: "ReviewDecision", id }));
+      return yield* Effect.fail(
+        new NotFoundError({ resource: "ReviewDecision", id })
+      );
     }
     return created;
   });

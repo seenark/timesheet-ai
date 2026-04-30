@@ -2,8 +2,8 @@ import {
   createAuditLog,
   getExternalIdentity,
   listUnmatchedIdentities,
-  setIdentitiesStatus,
   SurrealDb,
+  setIdentitiesStatus,
 } from "@timesheet-ai/db";
 import type { IdentityStatus } from "@timesheet-ai/domain";
 import { Effect } from "effect";
@@ -63,13 +63,21 @@ export const identityRoutes = new Elysia({ prefix: "/identities" })
         const status = body.status as IdentityStatus;
         const canonicalUserId = body.canonicalUserId as string | undefined;
 
-        yield* setIdentitiesStatus([params.id], status, canonicalUserId, body.confidence as number | undefined);
+        yield* setIdentitiesStatus(
+          [params.id],
+          status,
+          canonicalUserId,
+          body.confidence as number | undefined
+        );
 
         if (canonicalUserId) {
           yield* createAuditLog({
             organizationId: identity.organizationId as string,
             actorUserId,
-            action: status === "matched" ? "identity.linked" : "identity.status_updated",
+            action:
+              status === "matched"
+                ? "identity.linked"
+                : "identity.status_updated",
             targetType: "identity",
             targetId: params.id,
             previousValue: { status: identity.status },

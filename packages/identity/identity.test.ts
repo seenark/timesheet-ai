@@ -1,37 +1,44 @@
 import { describe, expect, test } from "bun:test";
-import type { Source } from "@timesheet-ai/domain";
-import type { CanonicalUser } from "@timesheet-ai/domain";
-import type { ExternalIdentity } from "@timesheet-ai/domain";
-import type { IdentityCandidate } from "./src/types";
+import type {
+  CanonicalUser,
+  ExternalIdentity,
+  Source,
+} from "@timesheet-ai/domain";
 import {
+  AUTO_LINK_THRESHOLD,
+  matchByDisplayNameSimilar,
   matchByEmailExact,
   matchByUsernameExact,
-  matchByDisplayNameSimilar,
-  scoreCandidate,
   resolveIdentity,
-  AUTO_LINK_THRESHOLD,
   SUGGEST_THRESHOLD,
+  scoreCandidate,
 } from "./src/index";
+import type { IdentityCandidate } from "./src/types";
 
-const makeUser = (overrides: Partial<CanonicalUser> = {}): CanonicalUser => ({
-  id: "user-1",
-  displayName: "Jane Doe",
-  primaryEmail: "jane.doe@example.com",
-  organizationId: "org-1",
-  active: true,
-  createdAt: "2024-01-01T00:00:00.000Z",
-  role: "member",
-  ...overrides,
-}) as CanonicalUser;
+const makeUser = (overrides: Partial<CanonicalUser> = {}): CanonicalUser =>
+  ({
+    id: "user-1",
+    displayName: "Jane Doe",
+    primaryEmail: "jane.doe@example.com",
+    organizationId: "org-1",
+    active: true,
+    createdAt: "2024-01-01T00:00:00.000Z",
+    role: "member",
+    ...overrides,
+  }) as CanonicalUser;
 
-const makeCandidate = (overrides: Partial<IdentityCandidate> = {}): IdentityCandidate => ({
+const makeCandidate = (
+  overrides: Partial<IdentityCandidate> = {}
+): IdentityCandidate => ({
   externalId: "ext-1",
   organizationId: "org-1",
   source: "git" as Source,
   ...overrides,
 });
 
-const makeIdentity = (overrides: Partial<ExternalIdentity> = {}): ExternalIdentity => ({
+const makeIdentity = (
+  overrides: Partial<ExternalIdentity> = {}
+): ExternalIdentity => ({
   id: "id-1",
   externalId: "ext-1",
   organizationId: "org-1",
@@ -46,9 +53,9 @@ describe("matchByEmailExact", () => {
     const users = [makeUser({ primaryEmail: "Jane.Doe@Example.com" })];
     const signal = matchByEmailExact("jane.doe@example.com", users);
     expect(signal).not.toBeNull();
-    expect(signal!.canonicalUserId).toBe("user-1");
-    expect(signal!.method).toBe("email-exact");
-    expect(signal!.confidence).toBe(0.95);
+    expect(signal?.canonicalUserId).toBe("user-1");
+    expect(signal?.method).toBe("email-exact");
+    expect(signal?.confidence).toBe(0.95);
   });
 
   test("returns null when no user has matching email", () => {
@@ -74,15 +81,15 @@ describe("matchByUsernameExact", () => {
     const users = [makeUser({ primaryEmail: "janedoe@example.com" })];
     const signal = matchByUsernameExact("janedoe", users);
     expect(signal).not.toBeNull();
-    expect(signal!.method).toBe("username-exact");
-    expect(signal!.confidence).toBe(0.75);
+    expect(signal?.method).toBe("username-exact");
+    expect(signal?.confidence).toBe(0.75);
   });
 
   test("matches by displayName converted to dot-notation", () => {
     const users = [makeUser({ displayName: "Jane Doe" })];
     const signal = matchByUsernameExact("jane.doe", users);
     expect(signal).not.toBeNull();
-    expect(signal!.method).toBe("username-exact");
+    expect(signal?.method).toBe("username-exact");
   });
 
   test("is case insensitive", () => {
@@ -103,8 +110,8 @@ describe("matchByDisplayNameSimilar", () => {
     const users = [makeUser({ displayName: "Jane Doe" })];
     const signal = matchByDisplayNameSimilar("Jane Doe", users);
     expect(signal).not.toBeNull();
-    expect(signal!.method).toBe("display-name-similar");
-    expect(signal!.confidence).toBe(0.7);
+    expect(signal?.method).toBe("display-name-similar");
+    expect(signal?.confidence).toBe(0.7);
   });
 
   test("returns signal for close match above 0.8 similarity", () => {
@@ -126,7 +133,7 @@ describe("matchByDisplayNameSimilar", () => {
     ];
     const signal = matchByDisplayNameSimilar("Jane Doe", users);
     expect(signal).not.toBeNull();
-    expect(signal!.canonicalUserId).toBe("user-1");
+    expect(signal?.canonicalUserId).toBe("user-1");
   });
 
   test("returns null for empty user list", () => {
@@ -142,34 +149,72 @@ describe("scoreCandidate", () => {
 
   test("returns highest confidence signal", () => {
     const signals = [
-      { canonicalUserId: "u1", canonicalUserDisplayName: "A", confidence: 0.5, method: "display-name-similar" as const },
-      { canonicalUserId: "u2", canonicalUserDisplayName: "B", confidence: 0.95, method: "email-exact" as const },
-      { canonicalUserId: "u3", canonicalUserDisplayName: "C", confidence: 0.75, method: "username-exact" as const },
+      {
+        canonicalUserId: "u1",
+        canonicalUserDisplayName: "A",
+        confidence: 0.5,
+        method: "display-name-similar" as const,
+      },
+      {
+        canonicalUserId: "u2",
+        canonicalUserDisplayName: "B",
+        confidence: 0.95,
+        method: "email-exact" as const,
+      },
+      {
+        canonicalUserId: "u3",
+        canonicalUserDisplayName: "C",
+        confidence: 0.75,
+        method: "username-exact" as const,
+      },
     ];
     const best = scoreCandidate(signals);
-    expect(best!.canonicalUserId).toBe("u2");
-    expect(best!.confidence).toBe(0.95);
+    expect(best?.canonicalUserId).toBe("u2");
+    expect(best?.confidence).toBe(0.95);
   });
 
   test("returns first when equal confidence", () => {
     const signals = [
-      { canonicalUserId: "u1", canonicalUserDisplayName: "A", confidence: 0.75, method: "username-exact" as const },
-      { canonicalUserId: "u2", canonicalUserDisplayName: "B", confidence: 0.75, method: "display-name-similar" as const },
+      {
+        canonicalUserId: "u1",
+        canonicalUserDisplayName: "A",
+        confidence: 0.75,
+        method: "username-exact" as const,
+      },
+      {
+        canonicalUserId: "u2",
+        canonicalUserDisplayName: "B",
+        confidence: 0.75,
+        method: "display-name-similar" as const,
+      },
     ];
     const best = scoreCandidate(signals);
-    expect(best!.canonicalUserId).toBe("u1");
+    expect(best?.canonicalUserId).toBe("u1");
   });
 });
 
 describe("resolveIdentity", () => {
   const users = [
-    makeUser({ id: "u1", displayName: "Jane Doe", primaryEmail: "jane.doe@example.com" }),
-    makeUser({ id: "u2", displayName: "John Smith", primaryEmail: "john.smith@example.com" }),
+    makeUser({
+      id: "u1",
+      displayName: "Jane Doe",
+      primaryEmail: "jane.doe@example.com",
+    }),
+    makeUser({
+      id: "u2",
+      displayName: "John Smith",
+      primaryEmail: "john.smith@example.com",
+    }),
   ];
 
   test("auto-links when manual override exists with matched status", () => {
     const identities = [
-      makeIdentity({ source: "git", externalId: "ext-1", status: "matched", canonicalUserId: "u2" }),
+      makeIdentity({
+        source: "git",
+        externalId: "ext-1",
+        status: "matched",
+        canonicalUserId: "u2",
+      }),
     ];
     const candidate = makeCandidate({ email: "different@example.com" });
     const result = resolveIdentity(candidate, users, identities);
@@ -210,7 +255,10 @@ describe("resolveIdentity", () => {
   });
 
   test("prefers email match over username when both available", () => {
-    const candidate = makeCandidate({ email: "jane.doe@example.com", username: "jane.doe" });
+    const candidate = makeCandidate({
+      email: "jane.doe@example.com",
+      username: "jane.doe",
+    });
     const result = resolveIdentity(candidate, users, []);
     expect(result.action).toBe("auto-link");
     expect(result.canonicalUserId).toBe("u1");
@@ -219,7 +267,11 @@ describe("resolveIdentity", () => {
   });
 
   test("returns all matched signals in result", () => {
-    const candidate = makeCandidate({ email: "jane.doe@example.com", username: "jane.doe", displayName: "Jane Doe" });
+    const candidate = makeCandidate({
+      email: "jane.doe@example.com",
+      username: "jane.doe",
+      displayName: "Jane Doe",
+    });
     const result = resolveIdentity(candidate, users, []);
     expect(result.matchedSignals.length).toBe(3);
     const methods = result.matchedSignals.map((s) => s.method);
@@ -230,7 +282,12 @@ describe("resolveIdentity", () => {
 
   test("does not auto-link from suggest-threshold identity even if present in existing identities as pending", () => {
     const identities = [
-      makeIdentity({ source: "git", externalId: "ext-1", status: "pending", canonicalUserId: "u1" }),
+      makeIdentity({
+        source: "git",
+        externalId: "ext-1",
+        status: "pending",
+        canonicalUserId: "u1",
+      }),
     ];
     const candidate = makeCandidate({ username: "jane.doe" });
     const result = resolveIdentity(candidate, users, identities);

@@ -4,20 +4,16 @@ export {
   listAuditLogsByTarget,
 } from "./audit.repo";
 export {
-  createReviewDecision,
-  listReviewDecisionsByTarget,
-} from "./review.repo";
+  getEventsByUserAndDateRange,
+  storeNormalizedEvent,
+  storeRawPayload,
+} from "./event.repo";
 export {
   enrichEvent,
   getNormalizedEvent,
   listEventsByCanonicalUser,
   listEventsForEnrichment,
 } from "./event-enrich.repo";
-export {
-  getEventsByUserAndDateRange,
-  storeNormalizedEvent,
-  storeRawPayload,
-} from "./event.repo";
 export {
   createExternalIdentity,
   findIdentityBySourceAndExternalId,
@@ -45,6 +41,10 @@ export {
   getOrganizationBySlug,
 } from "./organization.repo";
 export { createProject, getProject, listProjectsByOrg } from "./project.repo";
+export {
+  createReviewDecision,
+  listReviewDecisionsByTarget,
+} from "./review.repo";
 export {
   createUser,
   getUser,

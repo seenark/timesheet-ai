@@ -1,7 +1,7 @@
 export { attributeEvent } from "./resolver";
 export type {
+  AttributedEvent,
   AttributionResult,
   AttributionRule,
-  AttributedEvent,
   DirectMapping,
 } from "./types";

@@ -6,7 +6,11 @@ import {
   listMappingsByOrg,
   SurrealDb,
 } from "@timesheet-ai/db";
-import type { ExternalScopeType, MappingType, Source } from "@timesheet-ai/domain";
+import type {
+  ExternalScopeType,
+  MappingType,
+  Source,
+} from "@timesheet-ai/domain";
 import { Effect } from "effect";
 import { Elysia, t } from "elysia";
 
@@ -55,33 +59,37 @@ export const mappingRoutes = new Elysia({ prefix: "/mappings" })
       );
     }
   })
-  .get("/by-scope", async ({ query }) => {
-    const effect = Effect.gen(function* () {
-      return yield* getMappingsByScope(
-        query.source as Source,
-        query.externalScopeId
-      );
-    }).pipe(Effect.provide(SurrealDb));
+  .get(
+    "/by-scope",
+    async ({ query }) => {
+      const effect = Effect.gen(function* () {
+        return yield* getMappingsByScope(
+          query.source as Source,
+          query.externalScopeId
+        );
+      }).pipe(Effect.provide(SurrealDb));
 
-    try {
-      const result = await Effect.runPromise(effect);
-      return { ok: true as const, data: result };
-    } catch (error) {
-      return new Response(
-        JSON.stringify({
-          ok: false,
-          error: "INTERNAL_ERROR",
-          message: String(error),
-        }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
+      try {
+        const result = await Effect.runPromise(effect);
+        return { ok: true as const, data: result };
+      } catch (error) {
+        return new Response(
+          JSON.stringify({
+            ok: false,
+            error: "INTERNAL_ERROR",
+            message: String(error),
+          }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    },
+    {
+      query: t.Object({
+        source: t.String(),
+        externalScopeId: t.String(),
+      }),
     }
-  }, {
-    query: t.Object({
-      source: t.String(),
-      externalScopeId: t.String(),
-    }),
-  })
+  )
   .post(
     "/",
     async ({ body }) => {

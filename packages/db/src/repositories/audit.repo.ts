@@ -30,15 +30,14 @@ export const createAuditLog = (input: {
     })) as unknown as [AuditLog];
 
     if (!created) {
-      return yield* Effect.fail(new NotFoundError({ resource: "AuditLog", id }));
+      return yield* Effect.fail(
+        new NotFoundError({ resource: "AuditLog", id })
+      );
     }
     return created;
   });
 
-export const listAuditLogsByTarget = (
-  targetType: string,
-  targetId: string
-) =>
+export const listAuditLogsByTarget = (targetType: string, targetId: string) =>
   Effect.gen(function* () {
     const db = yield* SurrealDbTag;
     const [result] = (yield* db.query(

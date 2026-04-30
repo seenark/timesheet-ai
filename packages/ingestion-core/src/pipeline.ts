@@ -1,5 +1,9 @@
 import type { ISurrealDb } from "@timesheet-ai/db";
-import { createExternalIdentity, storeNormalizedEvent, storeRawPayload } from "@timesheet-ai/db";
+import {
+  createExternalIdentity,
+  storeNormalizedEvent,
+  storeRawPayload,
+} from "@timesheet-ai/db";
 import type { NormalizedEvent, Source } from "@timesheet-ai/domain";
 import { logError, logInfo, logWarn } from "@timesheet-ai/observability";
 import { Effect } from "effect";
@@ -92,7 +96,10 @@ const tryExtractIdentities = (
   plugin: {
     extractIdentities: (
       raw: unknown
-    ) => Effect.Effect<readonly { source: string; externalId: string; email?: string }[], IngestionError>;
+    ) => Effect.Effect<
+      readonly { source: string; externalId: string; email?: string }[],
+      IngestionError
+    >;
   },
   rawPayload: unknown,
   organizationId: string
@@ -169,7 +176,11 @@ const processSinglePayload = (
       organizationId
     );
 
-    const identityCount = yield* tryExtractIdentities(plugin, rawPayload, organizationId);
+    const identityCount = yield* tryExtractIdentities(
+      plugin,
+      rawPayload,
+      organizationId
+    );
 
     return {
       stored,

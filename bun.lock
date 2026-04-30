@@ -74,9 +74,11 @@
     "apps/worker": {
       "name": "worker",
       "dependencies": {
+        "@timesheet-ai/attribution": "workspace:*",
         "@timesheet-ai/db": "workspace:*",
         "@timesheet-ai/domain": "workspace:*",
         "@timesheet-ai/env": "workspace:*",
+        "@timesheet-ai/identity": "workspace:*",
         "@timesheet-ai/ingestion-core": "workspace:*",
         "@timesheet-ai/ingestion-git": "workspace:*",
         "@timesheet-ai/observability": "workspace:*",
@@ -89,6 +91,19 @@
         "@timesheet-ai/config": "workspace:*",
         "@types/bun": "catalog:",
         "tsdown": "^0.21.9",
+        "typescript": "catalog:",
+      },
+    },
+    "packages/attribution": {
+      "name": "@timesheet-ai/attribution",
+      "version": "0.0.0",
+      "dependencies": {
+        "@timesheet-ai/domain": "workspace:*",
+        "effect": "catalog:",
+      },
+      "devDependencies": {
+        "@timesheet-ai/config": "workspace:*",
+        "@types/bun": "catalog:",
         "typescript": "catalog:",
       },
     },
@@ -193,6 +208,19 @@
         "@timesheet-ai/config": "workspace:*",
         "@types/bun": "catalog:",
         "effect": "catalog:",
+        "typescript": "catalog:",
+      },
+    },
+    "packages/sessionization": {
+      "name": "@timesheet-ai/sessionization",
+      "version": "0.0.0",
+      "dependencies": {
+        "@timesheet-ai/domain": "workspace:*",
+        "effect": "catalog:",
+      },
+      "devDependencies": {
+        "@timesheet-ai/config": "workspace:*",
+        "@types/bun": "catalog:",
         "typescript": "catalog:",
       },
     },
@@ -551,6 +579,8 @@
 
     "@testing-library/react": ["@testing-library/react@16.3.2", "", { "dependencies": { "@babel/runtime": "^7.12.5" }, "peerDependencies": { "@testing-library/dom": "^10.0.0", "@types/react": "^18.0.0 || ^19.0.0", "@types/react-dom": "^18.0.0 || ^19.0.0", "react": "^18.0.0 || ^19.0.0", "react-dom": "^18.0.0 || ^19.0.0" }, "optionalPeers": ["@types/react", "@types/react-dom"] }, "sha512-XU5/SytQM+ykqMnAnvB2umaJNIOsLF3PVv//1Ew4CTcpz0/BRyy/af40qqrt7SjKpDdT1saBMc42CUok5gaw+g=="],
 
+    "@timesheet-ai/attribution": ["@timesheet-ai/attribution@workspace:packages/attribution"],
+
     "@timesheet-ai/config": ["@timesheet-ai/config@workspace:packages/config"],
 
     "@timesheet-ai/db": ["@timesheet-ai/db@workspace:packages/db"],
@@ -566,6 +596,8 @@
     "@timesheet-ai/ingestion-git": ["@timesheet-ai/ingestion-git@workspace:packages/ingestion-git"],
 
     "@timesheet-ai/observability": ["@timesheet-ai/observability@workspace:packages/observability"],
+
+    "@timesheet-ai/sessionization": ["@timesheet-ai/sessionization@workspace:packages/sessionization"],
 
     "@timesheet-ai/shared": ["@timesheet-ai/shared@workspace:packages/shared"],
 
