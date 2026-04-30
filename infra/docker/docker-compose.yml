@@ -1,0 +1,17 @@
+services:
+  surrealdb:
+    image: surrealdb/surrealdb:v2.3.7
+    user: "0:0"
+    command: start --user root --pass root file:///data/timesheet-ai.db
+    ports:
+      - "8000:8000"
+    volumes:
+      - surrealdb-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  surrealdb-data:

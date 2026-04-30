@@ -47,6 +47,12 @@ coverage
 # Worktrees
 .worktrees
 
+# Docker
+docker-data
+
+# SurrealDB
+*.db
+
 # Misc
 *.tgz
 .cache
