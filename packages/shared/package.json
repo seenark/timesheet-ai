@@ -1,0 +1,19 @@
+{
+  "name": "@timesheet-ai/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@timesheet-ai/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "effect": "catalog:",
+    "typescript": "catalog:"
+  }
+}

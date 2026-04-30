@@ -1,0 +1,26 @@
+{
+  "name": "@timesheet-ai/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@timesheet-ai/domain": "workspace:*",
+    "@timesheet-ai/env": "workspace:*",
+    "@timesheet-ai/observability": "workspace:*",
+    "@timesheet-ai/shared": "workspace:*",
+    "effect": "catalog:",
+    "surrealdb": "^1.3.0"
+  },
+  "devDependencies": {
+    "@timesheet-ai/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}
