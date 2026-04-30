@@ -77,6 +77,8 @@
         "@timesheet-ai/db": "workspace:*",
         "@timesheet-ai/domain": "workspace:*",
         "@timesheet-ai/env": "workspace:*",
+        "@timesheet-ai/ingestion-core": "workspace:*",
+        "@timesheet-ai/ingestion-git": "workspace:*",
         "@timesheet-ai/observability": "workspace:*",
         "@timesheet-ai/shared": "workspace:*",
         "dotenv": "catalog:",
@@ -142,7 +144,24 @@
       "name": "@timesheet-ai/ingestion-core",
       "version": "0.0.0",
       "dependencies": {
+        "@timesheet-ai/db": "workspace:*",
         "@timesheet-ai/domain": "workspace:*",
+        "@timesheet-ai/observability": "workspace:*",
+        "@timesheet-ai/shared": "workspace:*",
+        "effect": "catalog:",
+      },
+      "devDependencies": {
+        "@timesheet-ai/config": "workspace:*",
+        "@types/bun": "catalog:",
+        "typescript": "catalog:",
+      },
+    },
+    "packages/ingestion-git": {
+      "name": "@timesheet-ai/ingestion-git",
+      "version": "0.0.0",
+      "dependencies": {
+        "@timesheet-ai/domain": "workspace:*",
+        "@timesheet-ai/ingestion-core": "workspace:*",
         "@timesheet-ai/shared": "workspace:*",
         "effect": "catalog:",
       },
@@ -526,6 +545,8 @@
     "@timesheet-ai/env": ["@timesheet-ai/env@workspace:packages/env"],
 
     "@timesheet-ai/ingestion-core": ["@timesheet-ai/ingestion-core@workspace:packages/ingestion-core"],
+
+    "@timesheet-ai/ingestion-git": ["@timesheet-ai/ingestion-git@workspace:packages/ingestion-git"],
 
     "@timesheet-ai/observability": ["@timesheet-ai/observability@workspace:packages/observability"],
 
