@@ -1,7 +1,7 @@
 import { Schema } from "effect";
 
 export const SourceSchema = Schema.Literal("git", "plane", "discord").pipe(
-  Schema.annotations({ identifier: "Source" }),
+  Schema.annotations({ identifier: "Source" })
 );
 export type SourceType = Schema.Schema.Type<typeof SourceSchema>;
 
@@ -12,45 +12,49 @@ export const IdentityStatusSchema = Schema.Literal(
   "matched",
   "suggested",
   "unmatched",
-  "ignored",
+  "ignored"
 );
 export const MappingTypeSchema = Schema.Literal("manual", "rule", "inferred");
 export const AttributionMethodSchema = Schema.Literal(
   "manual",
   "rule",
   "inferred",
-  "direct",
+  "direct"
 );
 export const IntegrationStatusSchema = Schema.Literal(
   "active",
   "paused",
-  "error",
+  "error"
 );
 export const ExternalScopeTypeSchema = Schema.Literal(
   "repo",
   "workspace",
   "board",
   "channel",
-  "server",
+  "server"
 );
 export const ReviewStatusSchema = Schema.Literal(
   "draft",
   "reviewed",
   "approved",
-  "flagged",
+  "flagged"
 );
 export const JobStatusSchema = Schema.Literal(
   "pending",
   "running",
   "completed",
-  "failed",
+  "failed"
 );
 export const RecomputeLevelSchema = Schema.Literal(
   "enrichment",
   "session",
   "cluster",
   "work-unit",
-  "summary",
+  "summary"
 );
 export const SummaryScopeTypeSchema = Schema.Literal("user", "project");
-export const SummaryStatusSchema = Schema.Literal("draft", "reviewed", "approved");
+export const SummaryStatusSchema = Schema.Literal(
+  "draft",
+  "reviewed",
+  "approved"
+);

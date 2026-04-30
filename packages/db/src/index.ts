@@ -1,6 +1,10 @@
 // biome-ignore lint/performance/noBarrelFile: Package exports require barrel file
-export { SurrealDb, SurrealDbTag } from "./connection";
-export { DbConnectionError, DbQueryError } from "./connection";
+export {
+  DbConnectionError,
+  DbQueryError,
+  SurrealDb,
+  SurrealDbTag,
+} from "./connection";
 export { runMigrations } from "./migration";
 export {
   createJobRun,

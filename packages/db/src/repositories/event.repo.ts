@@ -1,7 +1,6 @@
-import { Effect } from "effect";
 import type { NormalizedEvent, RawEventPayload } from "@timesheet-ai/domain";
-import { NotFoundError } from "@timesheet-ai/shared";
-import { generateId } from "@timesheet-ai/shared";
+import { generateId, NotFoundError } from "@timesheet-ai/shared";
+import { Effect } from "effect";
 import { SurrealDbTag } from "../connection";
 
 export const storeRawPayload = (input: {
@@ -12,7 +11,7 @@ export const storeRawPayload = (input: {
   payload: unknown;
   checksum: string;
 }) =>
-  Effect.gen(function*() {
+  Effect.gen(function* () {
     const db = yield* SurrealDbTag;
     const id = generateId("raw");
     const recordId = `raw_event_payload:${id}`;
@@ -28,14 +27,14 @@ export const storeRawPayload = (input: {
 
     if (!created) {
       return yield* Effect.fail(
-        new NotFoundError({ resource: "RawPayload", id }),
+        new NotFoundError({ resource: "RawPayload", id })
       );
     }
     return created;
   });
 
 export const storeNormalizedEvent = (event: Omit<NormalizedEvent, "id">) =>
-  Effect.gen(function*() {
+  Effect.gen(function* () {
     const db = yield* SurrealDbTag;
     const id = generateId("evt");
     const recordId = `normalized_event:${id}`;
@@ -46,7 +45,7 @@ export const storeNormalizedEvent = (event: Omit<NormalizedEvent, "id">) =>
 
     if (!created) {
       return yield* Effect.fail(
-        new NotFoundError({ resource: "NormalizedEvent", id }),
+        new NotFoundError({ resource: "NormalizedEvent", id })
       );
     }
     return created;
@@ -55,9 +54,9 @@ export const storeNormalizedEvent = (event: Omit<NormalizedEvent, "id">) =>
 export const getEventsByUserAndDateRange = (
   canonicalUserId: string,
   dateStart: string,
-  dateEnd: string,
+  dateEnd: string
 ) =>
-  Effect.gen(function*() {
+  Effect.gen(function* () {
     const db = yield* SurrealDbTag;
     const [result] = (yield* db.query(
       `SELECT * FROM normalized_event
@@ -69,7 +68,7 @@ export const getEventsByUserAndDateRange = (
         userId: `canonical_user:${canonicalUserId}`,
         start: dateStart,
         end: dateEnd,
-      },
+      }
     )) as unknown as [NormalizedEvent[]];
     return (result ?? []) as NormalizedEvent[];
   });

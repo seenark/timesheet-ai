@@ -1,19 +1,16 @@
-import { Effect } from "effect";
 import type {
   CanonicalUser,
   CreateUserInput,
   UserRole,
 } from "@timesheet-ai/domain";
-import { NotFoundError } from "@timesheet-ai/shared";
-import { generateId } from "@timesheet-ai/shared";
+import { generateId, NotFoundError } from "@timesheet-ai/shared";
+import { Effect } from "effect";
 import { SurrealDbTag } from "../connection";
 
 const TABLE = "canonical_user";
 
-export const createUser = (
-  input: CreateUserInput & { passwordHash: string },
-) =>
-  Effect.gen(function*() {
+export const createUser = (input: CreateUserInput & { passwordHash: string }) =>
+  Effect.gen(function* () {
     const db = yield* SurrealDbTag;
     const id = generateId("user");
     const recordId = `${TABLE}:${id}`;
@@ -33,11 +30,11 @@ export const createUser = (
   });
 
 export const getUser = (id: string) =>
-  Effect.gen(function*() {
+  Effect.gen(function* () {
     const db = yield* SurrealDbTag;
-    const result = (yield* db.select(`${TABLE}:${id}`)) as unknown as
-      | CanonicalUser
-      | null;
+    const result = (yield* db.select(
+      `${TABLE}:${id}`
+    )) as unknown as CanonicalUser | null;
     if (!result) {
       return yield* Effect.fail(new NotFoundError({ resource: "User", id }));
     }
@@ -45,25 +42,24 @@ export const getUser = (id: string) =>
   });
 
 export const getUserByEmail = (email: string) =>
-  Effect.gen(function*() {
+  Effect.gen(function* () {
     const db = yield* SurrealDbTag;
     const [result] = (yield* db.query(
       "SELECT * FROM canonical_user WHERE primaryEmail = $email LIMIT 1",
-      { email },
+      { email }
     )) as unknown as [CanonicalUser[]];
 
     const user = result?.[0];
     if (!user) {
-      return yield* Effect.fail(new NotFoundError({ resource: "User", id: email }));
+      return yield* Effect.fail(
+        new NotFoundError({ resource: "User", id: email })
+      );
     }
     return user;
   });
 
-export const listUsersByOrg = (
-  organizationId: string,
-  role?: UserRole,
-) =>
-  Effect.gen(function*() {
+export const listUsersByOrg = (organizationId: string, role?: UserRole) =>
+  Effect.gen(function* () {
     const db = yield* SurrealDbTag;
     const query = role
       ? "SELECT * FROM canonical_user WHERE organizationId = $orgId AND role = $role AND active = true"

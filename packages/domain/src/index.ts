@@ -1,4 +1,5 @@
 // biome-ignore lint/performance/noBarrelFile: Package exports require barrel file
+export * from "./schemas/index";
 export type { AuditLog, ReviewDecision } from "./types/audit";
 export type {
   AttributionMethod,
@@ -35,4 +36,3 @@ export type {
 } from "./types/processing";
 export type { CreateProjectInput, Project } from "./types/project";
 export type { CanonicalUser, CreateUserInput } from "./types/user";
-export * from "./schemas/index";

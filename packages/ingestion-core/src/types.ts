@@ -1,5 +1,5 @@
-import { Data, Effect } from "effect";
 import type { NormalizedEvent, Source } from "@timesheet-ai/domain";
+import { Data, type Effect } from "effect";
 
 export interface IngestionResult {
   readonly cursor?: string;
@@ -32,17 +32,17 @@ export interface SourceScopeCandidate {
 
 export interface IngestionPlugin {
   extractIdentities(
-    rawPayload: unknown,
+    rawPayload: unknown
   ): Effect.Effect<readonly ExternalIdentityCandidate[], IngestionError>;
   extractScopes(
-    rawPayload: unknown,
+    rawPayload: unknown
   ): Effect.Effect<readonly SourceScopeCandidate[], IngestionError>;
   normalize(
-    rawPayload: unknown,
+    rawPayload: unknown
   ): Effect.Effect<readonly NormalizedEvent[], IngestionError>;
   readonly source: Source;
   sync(
     connectionId: string,
-    cursor?: string,
+    cursor?: string
   ): Effect.Effect<IngestionResult, IngestionError>;
 }

@@ -10,7 +10,7 @@ export const JobRunSchema = Schema.Struct({
   completedAt: Schema.optional(Schema.String),
   error: Schema.optional(Schema.String),
   metadata: Schema.optional(
-    Schema.Record({ key: Schema.String, value: Schema.Unknown }),
+    Schema.Record({ key: Schema.String, value: Schema.Unknown })
   ),
 }).annotations({ identifier: "JobRun" });
 

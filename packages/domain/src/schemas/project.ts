@@ -9,7 +9,7 @@ export const ProjectSchema = Schema.Struct({
   type: ProjectTypeSchema,
   status: ProjectStatusSchema,
   metadata: Schema.optional(
-    Schema.Record({ key: Schema.String, value: Schema.Unknown }),
+    Schema.Record({ key: Schema.String, value: Schema.Unknown })
   ),
   createdAt: Schema.String,
 }).annotations({ identifier: "Project" });

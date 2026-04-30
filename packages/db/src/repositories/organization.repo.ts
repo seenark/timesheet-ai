@@ -1,16 +1,15 @@
-import { Effect } from "effect";
 import type {
   CreateOrganizationInput,
   Organization,
 } from "@timesheet-ai/domain";
-import { NotFoundError } from "@timesheet-ai/shared";
-import { generateId } from "@timesheet-ai/shared";
+import { generateId, NotFoundError } from "@timesheet-ai/shared";
+import { Effect } from "effect";
 import { SurrealDbTag } from "../connection";
 
 const TABLE = "organization";
 
 export const createOrganization = (input: CreateOrganizationInput) =>
-  Effect.gen(function*() {
+  Effect.gen(function* () {
     const db = yield* SurrealDbTag;
     const id = generateId("org");
     const recordId = `${TABLE}:${id}`;
@@ -22,38 +21,38 @@ export const createOrganization = (input: CreateOrganizationInput) =>
 
     if (!created) {
       return yield* Effect.fail(
-        new NotFoundError({ resource: "Organization", id }),
+        new NotFoundError({ resource: "Organization", id })
       );
     }
     return created;
   });
 
 export const getOrganization = (id: string) =>
-  Effect.gen(function*() {
+  Effect.gen(function* () {
     const db = yield* SurrealDbTag;
-    const result = (yield* db.select(`${TABLE}:${id}`)) as unknown as
-      | Organization
-      | null;
+    const result = (yield* db.select(
+      `${TABLE}:${id}`
+    )) as unknown as Organization | null;
     if (!result) {
       return yield* Effect.fail(
-        new NotFoundError({ resource: "Organization", id }),
+        new NotFoundError({ resource: "Organization", id })
       );
     }
     return result;
   });
 
 export const getOrganizationBySlug = (slug: string) =>
-  Effect.gen(function*() {
+  Effect.gen(function* () {
     const db = yield* SurrealDbTag;
     const [result] = (yield* db.query(
       "SELECT * FROM organization WHERE slug = $slug LIMIT 1",
-      { slug },
+      { slug }
     )) as unknown as [Organization[]];
 
     const org = result?.[0];
     if (!org) {
       return yield* Effect.fail(
-        new NotFoundError({ resource: "Organization", id: slug }),
+        new NotFoundError({ resource: "Organization", id: slug })
       );
     }
     return org;

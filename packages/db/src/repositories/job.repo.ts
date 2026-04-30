@@ -1,7 +1,6 @@
-import { Effect } from "effect";
 import type { JobRun } from "@timesheet-ai/domain";
-import { NotFoundError } from "@timesheet-ai/shared";
-import { generateId } from "@timesheet-ai/shared";
+import { generateId, NotFoundError } from "@timesheet-ai/shared";
+import { Effect } from "effect";
 import { SurrealDbTag } from "../connection";
 
 const TABLE = "job_run";
@@ -11,7 +10,7 @@ export const createJobRun = (input: {
   jobType: string;
   metadata?: Record<string, unknown>;
 }) =>
-  Effect.gen(function*() {
+  Effect.gen(function* () {
     const db = yield* SurrealDbTag;
     const id = generateId("job");
     const recordId = `${TABLE}:${id}`;
@@ -32,9 +31,9 @@ export const createJobRun = (input: {
 export const updateJobStatus = (
   id: string,
   status: JobRun["status"],
-  error?: string,
+  error?: string
 ) =>
-  Effect.gen(function*() {
+  Effect.gen(function* () {
     const db = yield* SurrealDbTag;
     const updates: Record<string, unknown> = { status };
     if (status === "completed" || status === "failed") {
@@ -44,19 +43,18 @@ export const updateJobStatus = (
       updates.error = error;
     }
 
-    const updated = (yield* db.merge(`${TABLE}:${id}`, updates)) as unknown as
-      | JobRun
-      | null;
+    const updated = (yield* db.merge(
+      `${TABLE}:${id}`,
+      updates
+    )) as unknown as JobRun | null;
     if (!updated) {
-      return yield* Effect.fail(
-        new NotFoundError({ resource: "JobRun", id }),
-      );
+      return yield* Effect.fail(new NotFoundError({ resource: "JobRun", id }));
     }
     return updated;
   });
 
 export const getPendingJobs = (jobType?: string) =>
-  Effect.gen(function*() {
+  Effect.gen(function* () {
     const db = yield* SurrealDbTag;
     const query = jobType
       ? "SELECT * FROM job_run WHERE status = 'pending' AND jobType = $jobType ORDER BY startedAt ASC"

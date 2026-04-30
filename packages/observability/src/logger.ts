@@ -1,7 +1,6 @@
 import { Effect, Layer } from "effect";
 
-export const withModule = (module: string) =>
-  Effect.annotateLogs({ module });
+export const withModule = (module: string) => Effect.annotateLogs({ module });
 
 export const logInfo = (message: string, extra?: Record<string, unknown>) => {
   const base = Effect.logInfo(message);
