@@ -4,19 +4,21 @@ export interface GitAuthor {
 }
 
 export interface GitCommit {
+  readonly added: readonly string[];
+  readonly author: GitAuthor;
   readonly id: string;
   readonly message: string;
-  readonly timestamp: string;
-  readonly author: GitAuthor;
-  readonly added: readonly string[];
   readonly modified: readonly string[];
   readonly removed: readonly string[];
+  readonly timestamp: string;
 }
 
 export interface GitPushPayload {
-  readonly ref: string;
-  readonly before: string;
   readonly after: string;
+  readonly before: string;
+  readonly commits: readonly GitCommit[];
+  readonly head_commit?: GitCommit;
+  readonly ref: string;
   readonly repository: {
     readonly id: number;
     readonly full_name: string;
@@ -27,8 +29,6 @@ export interface GitPushPayload {
     readonly login: string;
     readonly avatar_url: string;
   };
-  readonly commits: readonly GitCommit[];
-  readonly head_commit?: GitCommit;
 }
 
 export interface GitPullRequestPayload {

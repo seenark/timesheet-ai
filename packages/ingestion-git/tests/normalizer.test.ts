@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { Effect } from "effect";
 import { normalizeGitPayload } from "../src/normalizer";
-import type { GitPushPayload, GitPullRequestPayload } from "../src/types";
+import type { GitPullRequestPayload, GitPushPayload } from "../src/types";
 
 const pushPayload: GitPushPayload = {
   ref: "refs/heads/main",
@@ -65,9 +65,7 @@ const prPayload: GitPullRequestPayload = {
 
 describe("normalizeGitPayload", () => {
   it("normalizes a push payload into commit events", async () => {
-    const result = await Effect.runPromise(
-      normalizeGitPayload(pushPayload)
-    );
+    const result = await Effect.runPromise(normalizeGitPayload(pushPayload));
     expect(result).toHaveLength(2);
 
     const first = result[0];
@@ -87,9 +85,7 @@ describe("normalizeGitPayload", () => {
   });
 
   it("normalizes a pull request payload", async () => {
-    const result = await Effect.runPromise(
-      normalizeGitPayload(prPayload)
-    );
+    const result = await Effect.runPromise(normalizeGitPayload(prPayload));
     expect(result).toHaveLength(1);
 
     const event = result[0];

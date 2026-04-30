@@ -1,11 +1,10 @@
-// biome-ignore lint/performance/noBarrelFile: Package exports require barrel file
+export type { ISurrealDb } from "./connection";
 export {
   DbConnectionError,
   DbQueryError,
   SurrealDb,
   SurrealDbTag,
 } from "./connection";
-export type { ISurrealDb } from "./connection";
 export { runMigrations } from "./migration";
 export {
   createExternalIdentity,

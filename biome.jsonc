@@ -3,7 +3,11 @@
   "extends": ["ultracite/biome/core", "ultracite/biome/react"],
   "overrides": [
     {
-      "includes": ["packages/ingestion-core/src/index.ts"],
+      "includes": [
+        "packages/ingestion-core/src/index.ts",
+        "packages/ingestion-git/src/index.ts",
+        "packages/db/src/index.ts"
+      ],
       "linter": {
         "rules": {
           "performance": {

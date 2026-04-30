@@ -32,11 +32,16 @@ export const pollAndExecute = (): Effect.Effect<number> =>
       yield* updateJobStatus(job.id, "running");
       yield* logInfo("Executing job", { jobId: job.id, jobType: job.jobType });
 
-      const result = yield* Effect.either(handler(job.metadata as Record<string, unknown> | undefined));
+      const result = yield* Effect.either(
+        handler(job.metadata as Record<string, unknown> | undefined)
+      );
 
       if (result._tag === "Left") {
         yield* updateJobStatus(job.id, "failed", String(result.left));
-        yield* logError("Job failed", { jobId: job.id, error: String(result.left) });
+        yield* logError("Job failed", {
+          jobId: job.id,
+          error: String(result.left),
+        });
       } else {
         yield* updateJobStatus(job.id, "completed");
         yield* logInfo("Job completed", { jobId: job.id });

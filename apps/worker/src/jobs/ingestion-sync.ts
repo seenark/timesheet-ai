@@ -1,8 +1,5 @@
-import { SurrealDb, getIntegrationConnection } from "@timesheet-ai/db";
-import {
-  getPlugin,
-  runIngestionPipeline,
-} from "@timesheet-ai/ingestion-core";
+import { getIntegrationConnection, SurrealDb } from "@timesheet-ai/db";
+import { getPlugin, runIngestionPipeline } from "@timesheet-ai/ingestion-core";
 import { logError, logInfo } from "@timesheet-ai/observability";
 import { Effect } from "effect";
 
@@ -11,9 +8,7 @@ export const runIngestionSync = (
 ): Effect.Effect<void> =>
   Effect.gen(function* () {
     const connectionId = metadata?.connectionId as string | undefined;
-    const rawPayloads = metadata?.rawPayloads as
-      | readonly unknown[]
-      | undefined;
+    const rawPayloads = metadata?.rawPayloads as readonly unknown[] | undefined;
 
     if (!connectionId) {
       return yield* Effect.fail(

@@ -10,5 +10,5 @@ export const registerPlugin = (plugin: IngestionPlugin): void => {
 export const getPlugin = (source: Source): IngestionPlugin | undefined =>
   plugins.get(source);
 
-export const getAllPlugins = (): ReadonlyArray<IngestionPlugin> =>
+export const getAllPlugins = (): readonly IngestionPlugin[] =>
   Array.from(plugins.values());

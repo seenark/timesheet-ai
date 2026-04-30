@@ -1,6 +1,9 @@
-import type { IngestionPlugin, IngestionResult } from "@timesheet-ai/ingestion-core";
-import { IngestionError } from "@timesheet-ai/ingestion-core";
 import type { Source } from "@timesheet-ai/domain";
+import type {
+  IngestionPlugin,
+  IngestionResult,
+} from "@timesheet-ai/ingestion-core";
+import { IngestionError } from "@timesheet-ai/ingestion-core";
 import { Effect } from "effect";
 import { extractGitIdentities } from "./identity-extractor";
 import { normalizeGitPayload } from "./normalizer";

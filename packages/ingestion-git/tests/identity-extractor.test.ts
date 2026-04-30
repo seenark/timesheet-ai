@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { Effect } from "effect";
 import { extractGitIdentities } from "../src/identity-extractor";
-import type { GitPushPayload, GitPullRequestPayload } from "../src/types";
+import type { GitPullRequestPayload, GitPushPayload } from "../src/types";
 
 const pushPayload: GitPushPayload = {
   ref: "refs/heads/main",
@@ -56,32 +56,30 @@ const prMergedPayload: GitPullRequestPayload = {
     created_at: "2026-04-30T09:00:00Z",
     updated_at: "2026-04-30T10:00:00Z",
   },
-  repository: { id: 1, full_name: "org/repo", html_url: "https://github.com/org/repo" },
+  repository: {
+    id: 1,
+    full_name: "org/repo",
+    html_url: "https://github.com/org/repo",
+  },
   sender: { id: 42, login: "jane-dev" },
 };
 
 describe("extractGitIdentities", () => {
   it("extracts sender and author identities from push", async () => {
-    const result = await Effect.runPromise(
-      extractGitIdentities(pushPayload)
-    );
+    const result = await Effect.runPromise(extractGitIdentities(pushPayload));
     expect(result.length).toBeGreaterThanOrEqual(2);
 
     const sender = result.find((c) => c.externalId === "42");
     expect(sender).toBeDefined();
     expect(sender?.username).toBe("jane-dev");
 
-    const author = result.find(
-      (c) => c.email === "jane@example.com"
-    );
+    const author = result.find((c) => c.email === "jane@example.com");
     expect(author).toBeDefined();
     expect(author?.displayName).toBe("Jane Doe");
   });
 
   it("deduplicates same author across commits", async () => {
-    const result = await Effect.runPromise(
-      extractGitIdentities(pushPayload)
-    );
+    const result = await Effect.runPromise(extractGitIdentities(pushPayload));
     const emailIdentities = result.filter(
       (c) => c.email === "jane@example.com"
     );

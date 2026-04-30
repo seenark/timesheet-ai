@@ -25,7 +25,9 @@ const deduplicateCandidates = (
   const seen = new Set<string>();
   return candidates.filter((c) => {
     const key = `${c.source}:${c.externalId}:${c.email ?? ""}`;
-    if (seen.has(key)) return false;
+    if (seen.has(key)) {
+      return false;
+    }
     seen.add(key);
     return true;
   });
@@ -80,7 +82,11 @@ export const extractGitIdentities = (
       }
     }
 
-    if (candidates.length === 0 && !isPushPayload(rawPayload) && !isPullRequestPayload(rawPayload)) {
+    if (
+      candidates.length === 0 &&
+      !isPushPayload(rawPayload) &&
+      !isPullRequestPayload(rawPayload)
+    ) {
       return yield* Effect.fail(
         new IngestionError({
           message: "Cannot extract identities from unknown payload type",

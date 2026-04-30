@@ -5,9 +5,7 @@ import type { GitCommit, GitPullRequestPayload, GitPushPayload } from "./types";
 
 const GIT_SOURCE: Source = "git";
 
-const isPushPayload = (
-  payload: unknown
-): payload is GitPushPayload => {
+const isPushPayload = (payload: unknown): payload is GitPushPayload => {
   const p = payload as Record<string, unknown>;
   return Array.isArray(p.commits) && typeof p.ref === "string";
 };
@@ -40,7 +38,8 @@ const normalizeCommit = (
     message: commit.message,
     commitSha: commit.id,
     branch: pushPayload.ref.replace("refs/heads/", ""),
-    fileCount: commit.added.length + commit.modified.length + commit.removed.length,
+    fileCount:
+      commit.added.length + commit.modified.length + commit.removed.length,
     additions: commit.added.length,
     deletions: commit.removed.length,
     title: commit.message.split("\n")[0],
@@ -81,8 +80,7 @@ export const normalizeGitPayload = (
   Effect.gen(function* () {
     if (isPushPayload(rawPayload)) {
       const events: NormalizedEvent[] = rawPayload.commits.map(
-        (commit) =>
-          normalizeCommit(commit, rawPayload) as NormalizedEvent
+        (commit) => normalizeCommit(commit, rawPayload) as NormalizedEvent
       );
       return events;
     }

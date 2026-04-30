@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { Effect } from "effect";
 import { extractGitScopes } from "../src/scope-extractor";
-import type { GitPushPayload, GitPullRequestPayload } from "../src/types";
+import type { GitPullRequestPayload, GitPushPayload } from "../src/types";
 
 const pushPayload: GitPushPayload = {
   ref: "refs/heads/main",
@@ -36,15 +36,17 @@ const prPayload: GitPullRequestPayload = {
     created_at: "2026-04-30T09:00:00Z",
     updated_at: "2026-04-30T09:00:00Z",
   },
-  repository: { id: 1, full_name: "org/client-portal", html_url: "https://github.com/org/client-portal" },
+  repository: {
+    id: 1,
+    full_name: "org/client-portal",
+    html_url: "https://github.com/org/client-portal",
+  },
   sender: { id: 42, login: "jane-dev" },
 };
 
 describe("extractGitScopes", () => {
   it("extracts repo scope from push payload", async () => {
-    const result = await Effect.runPromise(
-      extractGitScopes(pushPayload)
-    );
+    const result = await Effect.runPromise(extractGitScopes(pushPayload));
     expect(result).toHaveLength(1);
     expect(result[0].scopeType).toBe("repo");
     expect(result[0].externalScopeId).toBe("org/client-portal");
@@ -52,9 +54,7 @@ describe("extractGitScopes", () => {
   });
 
   it("extracts repo scope from PR payload", async () => {
-    const result = await Effect.runPromise(
-      extractGitScopes(prPayload)
-    );
+    const result = await Effect.runPromise(extractGitScopes(prPayload));
     expect(result).toHaveLength(1);
     expect(result[0].externalScopeId).toBe("org/client-portal");
   });

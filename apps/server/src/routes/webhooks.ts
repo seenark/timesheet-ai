@@ -1,7 +1,4 @@
-import {
-  SurrealDb,
-  createJobRun,
-} from "@timesheet-ai/db";
+import { createJobRun, SurrealDb } from "@timesheet-ai/db";
 import { logInfo } from "@timesheet-ai/observability";
 import { Effect } from "effect";
 import { Elysia } from "elysia";
@@ -52,7 +49,11 @@ export const webhookRoutes = new Elysia({
     return { ok: true as const, data: result };
   } catch (error) {
     return new Response(
-      JSON.stringify({ ok: false, error: "INTERNAL_ERROR", message: String(error) }),
+      JSON.stringify({
+        ok: false,
+        error: "INTERNAL_ERROR",
+        message: String(error),
+      }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
