@@ -8,7 +8,8 @@
         "packages/db/src/index.ts",
         "packages/identity/src/index.ts",
         "packages/ingestion-core/src/index.ts",
-        "packages/ingestion-git/src/index.ts"
+        "packages/ingestion-git/src/index.ts",
+        "packages/sessionization/src/index.ts"
       ],
       "linter": {
         "rules": {
@@ -20,6 +21,19 @@
     },
     {
       "includes": ["packages/identity/src/matcher.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNonNullAssertion": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "packages/sessionization/src/detector.ts",
+        "packages/sessionization/src/clusterer.ts"
+      ],
       "linter": {
         "rules": {
           "style": {

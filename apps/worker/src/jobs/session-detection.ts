@@ -6,14 +6,41 @@ import {
   listEnrichedEventsByOrg,
   SurrealDb,
 } from "@timesheet-ai/db";
+import { logError, logInfo } from "@timesheet-ai/observability";
 import {
   DEFAULT_CONFIG,
   detectClusters,
   detectSessions,
   type SessionInput,
 } from "@timesheet-ai/sessionization";
-import { logError, logInfo } from "@timesheet-ai/observability";
 import { Effect } from "effect";
+
+const toSessionInput = (e: Record<string, unknown>): SessionInput => {
+  const content =
+    e.content && typeof e.content === "object"
+      ? (e.content as Record<string, unknown>)
+      : {};
+  return {
+    canonicalUserId: String(e.canonicalUserId ?? "").replace(
+      "canonical_user:",
+      ""
+    ),
+    eventTime: String(e.eventTime ?? ""),
+    id: String(e.id ?? ""),
+    organizationId: String(e.organizationId ?? "").replace("organization:", ""),
+    projectId: e.projectId
+      ? String(e.projectId).replace("project:", "")
+      : undefined,
+    source: String(e.source ?? ""),
+    sourceEventType: String(e.sourceEventType ?? ""),
+    content: {
+      branch: content.branch as string | undefined,
+      taskId: content.taskId as string | undefined,
+      message: content.message as string | undefined,
+      title: content.title as string | undefined,
+    },
+  };
+};
 
 export const runSessionDetection = (
   metadata?: Record<string, unknown>
@@ -26,9 +53,14 @@ export const runSessionDetection = (
       );
     }
 
-    const sessionGapMinutes = (metadata?.sessionGapMinutes as number) ?? DEFAULT_CONFIG.sessionGapMinutes;
+    const sessionGapMinutes =
+      (metadata?.sessionGapMinutes as number) ??
+      DEFAULT_CONFIG.sessionGapMinutes;
 
-    yield* logInfo("Starting session detection", { organizationId, sessionGapMinutes });
+    yield* logInfo("Starting session detection", {
+      organizationId,
+      sessionGapMinutes,
+    });
 
     const events = yield* listEnrichedEventsByOrg(organizationId);
 
@@ -37,31 +69,19 @@ export const runSessionDetection = (
       organizationId,
     });
 
-    const sessionInputs: SessionInput[] = events.map((e) => ({
-      canonicalUserId: String(e.canonicalUserId ?? "").replace("canonical_user:", ""),
-      eventTime: String(e.eventTime ?? ""),
-      id: String(e.id ?? ""),
-      organizationId: String(e.organizationId ?? "").replace("organization:", ""),
-      projectId: e.projectId ? String(e.projectId).replace("project:", "") : undefined,
-      source: String(e.source ?? ""),
-      sourceEventType: String(e.sourceEventType ?? ""),
-      content: {
-        branch: e.content && typeof e.content === "object" ? (e.content as Record<string, unknown>).branch as string | undefined : undefined,
-        taskId: e.content && typeof e.content === "object" ? (e.content as Record<string, unknown>).taskId as string | undefined : undefined,
-        message: e.content && typeof e.content === "object" ? (e.content as Record<string, unknown>).message as string | undefined : undefined,
-        title: e.content && typeof e.content === "object" ? (e.content as Record<string, unknown>).title as string | undefined : undefined,
-      },
-    }));
+    const sessionInputs = events.map(toSessionInput);
 
-    const sessions = detectSessions(sessionInputs, { ...DEFAULT_CONFIG, sessionGapMinutes });
+    const sessions = detectSessions(sessionInputs, {
+      ...DEFAULT_CONFIG,
+      sessionGapMinutes,
+    });
 
     yield* deleteSessionsByOrg(organizationId);
     yield* deleteClustersByOrg(organizationId);
 
     let totalClusters = 0;
     for (const session of sessions) {
-      const avgConfidence =
-        session.eventIds.length > 0 ? 0.7 : 0;
+      const avgConfidence = session.eventIds.length > 0 ? 0.7 : 0;
 
       const createdSession = yield* createSession({
         organizationId: session.organizationId,
@@ -73,7 +93,10 @@ export const runSessionDetection = (
         confidence: avgConfidence,
       });
 
-      const sessionIdStr = String(createdSession.id).replace("activity_session:", "");
+      const sessionIdStr = String(createdSession.id).replace(
+        "activity_session:",
+        ""
+      );
       const sessionEvents = sessionInputs.filter((e) =>
         session.eventIds.includes(e.id)
       );
