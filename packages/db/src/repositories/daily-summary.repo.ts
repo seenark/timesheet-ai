@@ -92,6 +92,28 @@ export const listSummariesByOrg = (organizationId: string) =>
     return (result ?? []) as DailySummary[];
   });
 
+export const listSummariesByOrgDateRange = (
+  organizationId: string,
+  dateStart: string,
+  dateEnd: string
+) =>
+  Effect.gen(function* () {
+    const db = yield* SurrealDbTag;
+    const [result] = (yield* db.query(
+      `SELECT * FROM daily_summary
+       WHERE organizationId = $orgId
+       AND date >= $start
+       AND date <= $end
+       ORDER BY date ASC`,
+      {
+        orgId: `organization:${organizationId}`,
+        start: dateStart,
+        end: dateEnd,
+      }
+    )) as unknown as [DailySummary[]];
+    return (result ?? []) as DailySummary[];
+  });
+
 export const deleteSummariesByOrg = (organizationId: string) =>
   Effect.gen(function* () {
     const db = yield* SurrealDbTag;

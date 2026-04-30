@@ -15,6 +15,7 @@ export {
   deleteSummariesByOrg,
   getDailySummary,
   listSummariesByOrg,
+  listSummariesByOrgDateRange,
   listSummariesByScope,
 } from "./daily-summary.repo";
 export {
@@ -82,6 +83,7 @@ export {
   deleteWorkUnitsByOrg,
   getWorkUnit,
   listWorkUnitsByOrg,
+  listWorkUnitsByOrgDateRange,
   listWorkUnitsByProject,
   listWorkUnitsByUser,
 } from "./work-unit.repo";

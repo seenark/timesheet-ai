@@ -121,6 +121,28 @@ export const listWorkUnitsByOrg = (organizationId: string) =>
     return (result ?? []) as WorkUnit[];
   });
 
+export const listWorkUnitsByOrgDateRange = (
+  organizationId: string,
+  dateStart: string,
+  dateEnd: string
+) =>
+  Effect.gen(function* () {
+    const db = yield* SurrealDbTag;
+    const [result] = (yield* db.query(
+      `SELECT * FROM work_unit
+       WHERE organizationId = $orgId
+       AND date >= $start
+       AND date <= $end
+       ORDER BY date DESC, startedAt ASC`,
+      {
+        orgId: `organization:${organizationId}`,
+        start: dateStart,
+        end: dateEnd,
+      }
+    )) as unknown as [WorkUnit[]];
+    return (result ?? []) as WorkUnit[];
+  });
+
 export const deleteWorkUnitsByOrg = (organizationId: string) =>
   Effect.gen(function* () {
     const db = yield* SurrealDbTag;
