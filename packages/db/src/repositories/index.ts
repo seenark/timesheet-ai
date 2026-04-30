@@ -4,6 +4,10 @@ export {
   listAuditLogsByTarget,
 } from "./audit.repo";
 export {
+  createReviewDecision,
+  listReviewDecisionsByTarget,
+} from "./review.repo";
+export {
   enrichEvent,
   getNormalizedEvent,
   listEventsByCanonicalUser,
