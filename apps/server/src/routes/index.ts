@@ -1,10 +1,12 @@
 import { Elysia } from "elysia";
+import { clusterRoutes } from "./clusters";
 import { eventRoutes } from "./events";
 import { healthRoutes } from "./health";
 import { identityRoutes } from "./identities";
 import { integrationRoutes } from "./integrations";
 import { mappingRoutes } from "./mappings";
 import { reviewRoutes } from "./review";
+import { sessionRoutes } from "./sessions";
 import { webhookRoutes } from "./webhooks";
 
 export const routes = new Elysia()
@@ -14,4 +16,6 @@ export const routes = new Elysia()
   .use(identityRoutes)
   .use(mappingRoutes)
   .use(reviewRoutes)
+  .use(sessionRoutes)
+  .use(clusterRoutes)
   .use(webhookRoutes);
