@@ -64,6 +64,21 @@ export const listEventsForEnrichment = (organizationId: string) =>
     return (result ?? []) as Record<string, unknown>[];
   });
 
+export const listEnrichedEventsByOrg = (organizationId: string) =>
+  Effect.gen(function* () {
+    const db = yield* SurrealDbTag;
+    const [result] = (yield* db.query(
+      `SELECT * FROM normalized_event
+       WHERE organizationId = $orgId
+       AND canonicalUserId IS NOT NONE
+       AND attribution.attributionMethod IS NOT NONE
+       ORDER BY eventTime ASC
+       LIMIT 500`,
+      { orgId: `organization:${organizationId}` }
+    )) as unknown as [Record<string, unknown>[]];
+    return (result ?? []) as Record<string, unknown>[];
+  });
+
 export const listEventsByCanonicalUser = (
   canonicalUserId: string,
   dateStart: string,
