@@ -11,6 +11,13 @@ export {
   listClustersByUser,
 } from "./cluster.repo";
 export {
+  createDailySummary,
+  deleteSummariesByOrg,
+  getDailySummary,
+  listSummariesByOrg,
+  listSummariesByScope,
+} from "./daily-summary.repo";
+export {
   getEventsByUserAndDateRange,
   storeNormalizedEvent,
   storeRawPayload,
@@ -70,3 +77,11 @@ export {
   getUserByEmail,
   listUsersByOrg,
 } from "./user.repo";
+export {
+  createWorkUnit,
+  deleteWorkUnitsByOrg,
+  getWorkUnit,
+  listWorkUnitsByOrg,
+  listWorkUnitsByProject,
+  listWorkUnitsByUser,
+} from "./work-unit.repo";
