@@ -5,6 +5,7 @@ export {
   SurrealDb,
   SurrealDbTag,
 } from "./connection";
+export type { ISurrealDb } from "./connection";
 export { runMigrations } from "./migration";
 export {
   createExternalIdentity,
