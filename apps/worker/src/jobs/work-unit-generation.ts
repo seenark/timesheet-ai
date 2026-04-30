@@ -1,4 +1,4 @@
-import { generateWorkUnit } from "@timesheet-ai/ai";
+import { generateWorkUnit, type WorkUnitOutput } from "@timesheet-ai/ai";
 import {
   createWorkUnit,
   deleteWorkUnitsByOrg,
@@ -32,27 +32,39 @@ export const runWorkUnitGeneration = (
       );
     }
 
-    const date = (metadata?.date as string | undefined) ?? getTodayDate();
+    const dateFilter = (metadata?.date as string | undefined) ?? getTodayDate();
 
     yield* logInfo("Starting work unit generation", {
       organizationId,
-      date,
+      dateFilter,
+    });
+
+    yield* deleteWorkUnitsByOrg(organizationId);
+
+    yield* logInfo("Deleted existing work units for recompute", {
+      organizationId,
     });
 
     const sessions = yield* listSessionsByOrg(organizationId);
 
+    const datePrefix = `${dateFilter}T`;
+    const filteredSessions = sessions.filter((s) =>
+      String(s.startedAt).startsWith(datePrefix)
+    );
+
     yield* logInfo("Loaded sessions", {
-      count: sessions.length,
+      count: filteredSessions.length,
       organizationId,
+      dateFilter,
     });
 
     const enrichedEvents = yield* listEnrichedEventsByOrg(organizationId);
     const eventsById = new Map(
-      enrichedEvents.map((e) => [e.id, e as NormalizedEvent])
+      enrichedEvents.map((e) => [e.id, e as unknown as NormalizedEvent])
     );
 
     const allClusters: ActivityCluster[] = [];
-    for (const session of sessions) {
+    for (const session of filteredSessions) {
       const sessionIdStr = String(session.id).replace("activity_session:", "");
       const clusters = yield* listClustersBySession(sessionIdStr);
       allClusters.push(...clusters);
@@ -72,9 +84,10 @@ export const runWorkUnitGeneration = (
         continue;
       }
 
-      const workUnitOutput = yield* Effect.promise(() =>
+      const rawOutput = yield* Effect.promise(() =>
         generateWorkUnit(cluster, clusterEvents)
       );
+      const workUnitOutput = rawOutput as WorkUnitOutput;
 
       const clusterOrgId = cluster.organizationId.startsWith("organization:")
         ? cluster.organizationId.replace("organization:", "")
@@ -90,7 +103,7 @@ export const runWorkUnitGeneration = (
         ? cluster.projectId.replace("project:", "")
         : (cluster.projectId ?? "unknown");
 
-      const clusterDate = cluster.startedAt.split("T")[0];
+      const clusterDate = cluster.startedAt.split("T")[0] ?? dateFilter;
 
       const sourceTypes = [
         ...new Set(clusterEvents.map((e) => e.source).filter(Boolean)),
@@ -114,12 +127,6 @@ export const runWorkUnitGeneration = (
 
     yield* logInfo("Work unit generation complete", {
       clustersProcessed: allClusters.length,
-      organizationId,
-    });
-
-    yield* deleteWorkUnitsByOrg(organizationId);
-
-    yield* logInfo("Deleted existing work units for recompute", {
       organizationId,
     });
   }).pipe(

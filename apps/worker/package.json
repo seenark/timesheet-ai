@@ -10,6 +10,7 @@
     "start": "bun run dist/index.mjs"
   },
   "dependencies": {
+    "@timesheet-ai/ai": "workspace:*",
     "@timesheet-ai/attribution": "workspace:*",
     "@timesheet-ai/db": "workspace:*",
     "@timesheet-ai/domain": "workspace:*",

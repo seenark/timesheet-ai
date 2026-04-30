@@ -1,4 +1,7 @@
-import { generateDailySummary } from "@timesheet-ai/ai";
+import {
+  type DailySummaryOutput,
+  generateDailySummary,
+} from "@timesheet-ai/ai";
 import {
   createDailySummary,
   deleteSummariesByOrg,
@@ -8,7 +11,7 @@ import {
   listWorkUnitsByUser,
   SurrealDb,
 } from "@timesheet-ai/db";
-import type { CanonicalUser, Project, WorkUnit } from "@timesheet-ai/domain";
+import type { WorkUnit } from "@timesheet-ai/domain";
 import { logError, logInfo } from "@timesheet-ai/observability";
 import { Effect } from "effect";
 
@@ -25,48 +28,17 @@ const normalizeOrgId = (orgId: string): string =>
     ? orgId.replace("organization:", "")
     : orgId;
 
-const processUserSummaries = (
-  users: CanonicalUser[],
-  organizationId: string,
-  date: string,
-  dateStart: string,
-  dateEnd: string
-): Effect.Effect<void> =>
-  Effect.gen(function* () {
-    yield* logInfo("Processing user summaries", {
-      userCount: users.length,
-      organizationId,
-      date,
-    });
-
-    const orgIdStr = normalizeOrgId(organizationId);
-
-    for (const user of users) {
-      const userIdStr = String(user.id).replace("canonical_user:", "");
-      const workUnits = yield* listWorkUnitsByUser(
-        userIdStr,
-        dateStart,
-        dateEnd
-      );
-
-      if (workUnits.length === 0) {
-        continue;
-      }
-
-      yield* createSummaryForUser(userIdStr, workUnits, date, orgIdStr);
-    }
-  });
-
 const createSummaryForUser = (
   userIdStr: string,
   workUnits: WorkUnit[],
   date: string,
   orgIdStr: string
-): Effect.Effect<void> =>
+) =>
   Effect.gen(function* () {
-    const summaryOutput = yield* Effect.promise(() =>
+    const rawOutput = yield* Effect.promise(() =>
       generateDailySummary(workUnits, "user", userIdStr, date)
     );
+    const summaryOutput = rawOutput as DailySummaryOutput;
 
     yield* createDailySummary({
       organizationId: orgIdStr,
@@ -78,48 +50,17 @@ const createSummaryForUser = (
     });
   });
 
-const processProjectSummaries = (
-  projects: Project[],
-  organizationId: string,
-  date: string,
-  dateStart: string,
-  dateEnd: string
-): Effect.Effect<void> =>
-  Effect.gen(function* () {
-    yield* logInfo("Processing project summaries", {
-      projectCount: projects.length,
-      organizationId,
-      date,
-    });
-
-    const orgIdStr = normalizeOrgId(organizationId);
-
-    for (const project of projects) {
-      const projectIdStr = String(project.id).replace("project:", "");
-      const workUnits = yield* listWorkUnitsByProject(
-        projectIdStr,
-        dateStart,
-        dateEnd
-      );
-
-      if (workUnits.length === 0) {
-        continue;
-      }
-
-      yield* createSummaryForProject(projectIdStr, workUnits, date, orgIdStr);
-    }
-  });
-
 const createSummaryForProject = (
   projectIdStr: string,
   workUnits: WorkUnit[],
   date: string,
   orgIdStr: string
-): Effect.Effect<void> =>
+) =>
   Effect.gen(function* () {
-    const summaryOutput = yield* Effect.promise(() =>
+    const rawOutput = yield* Effect.promise(() =>
       generateDailySummary(workUnits, "project", projectIdStr, date)
     );
+    const summaryOutput = rawOutput as DailySummaryOutput;
 
     yield* createDailySummary({
       organizationId: orgIdStr,
@@ -155,41 +96,92 @@ export const runDailySummaryGeneration = (
       scopeType,
     });
 
+    yield* deleteSummariesByOrg(organizationId);
+
+    yield* logInfo("Deleted existing summaries for recompute", {
+      organizationId,
+    });
+
     const dateStart = `${date}T00:00:00Z`;
     const dateEnd = `${date}T23:59:59Z`;
+    const orgIdStr = normalizeOrgId(organizationId);
 
     if (scopeType === "user" || scopeType === "both") {
+      yield* logInfo("Processing user summaries", { organizationId, date });
+
       const users = yield* listUsersByOrg(organizationId);
-      yield* processUserSummaries(
-        users,
-        organizationId,
-        date,
-        dateStart,
-        dateEnd
-      );
+
+      for (const user of users) {
+        const userIdStr = String(user.id).replace("canonical_user:", "");
+        const workUnitsResult = yield* Effect.either(
+          listWorkUnitsByUser(userIdStr, dateStart, dateEnd)
+        );
+
+        if (workUnitsResult._tag === "Left") {
+          yield* logError("Failed to fetch work units for user", {
+            userId: userIdStr,
+            error: String(workUnitsResult.left),
+          });
+          continue;
+        }
+
+        const workUnits = workUnitsResult.right;
+        if (workUnits.length === 0) {
+          continue;
+        }
+
+        const summaryResult = yield* Effect.either(
+          createSummaryForUser(userIdStr, workUnits, date, orgIdStr)
+        );
+        if (summaryResult._tag === "Left") {
+          yield* logError("Failed to create user summary", {
+            userId: userIdStr,
+            error: String(summaryResult.left),
+          });
+        }
+      }
     }
 
     if (scopeType === "project" || scopeType === "both") {
+      yield* logInfo("Processing project summaries", { organizationId, date });
+
       const projects = yield* listProjectsByOrg(organizationId);
-      yield* processProjectSummaries(
-        projects,
-        organizationId,
-        date,
-        dateStart,
-        dateEnd
-      );
+
+      for (const project of projects) {
+        const projectIdStr = String(project.id).replace("project:", "");
+        const workUnitsResult = yield* Effect.either(
+          listWorkUnitsByProject(projectIdStr, dateStart, dateEnd)
+        );
+
+        if (workUnitsResult._tag === "Left") {
+          yield* logError("Failed to fetch work units for project", {
+            projectId: projectIdStr,
+            error: String(workUnitsResult.left),
+          });
+          continue;
+        }
+
+        const workUnits = workUnitsResult.right;
+        if (workUnits.length === 0) {
+          continue;
+        }
+
+        const summaryResult = yield* Effect.either(
+          createSummaryForProject(projectIdStr, workUnits, date, orgIdStr)
+        );
+        if (summaryResult._tag === "Left") {
+          yield* logError("Failed to create project summary", {
+            projectId: projectIdStr,
+            error: String(summaryResult.left),
+          });
+        }
+      }
     }
 
     yield* logInfo("Daily summary generation complete", {
       organizationId,
       date,
       scopeType,
-    });
-
-    yield* deleteSummariesByOrg(organizationId);
-
-    yield* logInfo("Deleted existing summaries for recompute", {
-      organizationId,
     });
   }).pipe(
     Effect.provide(SurrealDb),

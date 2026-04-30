@@ -42,6 +42,19 @@
           }
         }
       }
+    },
+    {
+      "includes": [
+        "apps/worker/src/jobs/work-unit-generation.ts",
+        "apps/worker/src/jobs/daily-summary-generation.ts"
+      ],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noExcessiveCognitiveComplexity": "off"
+          }
+        }
+      }
     }
   ]
 }
