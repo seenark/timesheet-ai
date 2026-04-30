@@ -1,14 +1,8 @@
-import { getPendingJobs, updateJobStatus } from "@timesheet-ai/db";
-import { createLogger } from "@timesheet-ai/observability";
-import { isErr, isOk, type Result } from "@timesheet-ai/shared";
-import type { Surreal } from "surrealdb";
+import { getPendingJobs, SurrealDb, updateJobStatus } from "@timesheet-ai/db";
+import { logError, logInfo, logWarn } from "@timesheet-ai/observability";
+import { Effect } from "effect";
 
-const log = createLogger({ module: "worker:job-runner" });
-
-type JobHandler = (
-  db: Surreal,
-  metadata?: Record<string, unknown>
-) => Promise<Result<void>>;
+type JobHandler = (metadata?: Record<string, unknown>) => Effect.Effect<void>;
 
 const handlers = new Map<string, JobHandler>();
 
@@ -17,41 +11,40 @@ export const registerJobHandler = (
   handler: JobHandler
 ): void => {
   handlers.set(jobType, handler);
-  log.info("Registered job handler", { jobType });
+  logInfo("Registered job handler", { jobType });
 };
 
-export const pollAndExecute = async (db: Surreal): Promise<number> => {
-  const pendingJobs = await getPendingJobs(db);
+export const pollAndExecute = (): Effect.Effect<number> =>
+  Effect.gen(function* () {
+    const jobs = yield* getPendingJobs();
 
-  let executed = 0;
-  for (const job of pendingJobs) {
-    const handler = handlers.get(job.jobType);
-    if (!handler) {
-      log.warn("No handler for job type", {
-        jobType: job.jobType,
-        jobId: job.id,
-      });
-      continue;
+    let executed = 0;
+    for (const job of jobs) {
+      const handler = handlers.get(job.jobType);
+      if (!handler) {
+        yield* logWarn("No handler for job type", {
+          jobType: job.jobType,
+          jobId: job.id,
+        });
+        continue;
+      }
+
+      yield* updateJobStatus(job.id, "running");
+      yield* logInfo("Executing job", { jobId: job.id, jobType: job.jobType });
+
+      yield* handler(job.metadata as Record<string, unknown> | undefined);
+
+      yield* updateJobStatus(job.id, "completed");
+      yield* logInfo("Job completed", { jobId: job.id });
+
+      executed++;
     }
 
-    await updateJobStatus(db, job.id, "running");
-    log.info("Executing job", { jobId: job.id, jobType: job.jobType });
-
-    const result = await handler(
-      db,
-      job.metadata as Record<string, unknown> | undefined
-    );
-
-    if (isOk(result)) {
-      await updateJobStatus(db, job.id, "completed");
-      log.info("Job completed", { jobId: job.id });
-    } else if (isErr(result)) {
-      await updateJobStatus(db, job.id, "failed", result.error);
-      log.error("Job failed", { jobId: job.id, error: result.error });
-    }
-
-    executed++;
-  }
-
-  return executed;
-};
+    return executed;
+  }).pipe(
+    Effect.catchAll((error) => {
+      logError("Job execution failed", { error });
+      return Effect.succeed(0);
+    }),
+    Effect.provide(SurrealDb)
+  );

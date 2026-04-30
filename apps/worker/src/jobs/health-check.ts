@@ -1,11 +1,17 @@
-import { createLogger } from "@timesheet-ai/observability";
-import type { Surreal } from "surrealdb";
+import { SurrealDb, SurrealDbTag } from "@timesheet-ai/db";
+import { logInfo } from "@timesheet-ai/observability";
+import { Effect } from "effect";
 
-const log = createLogger({ module: "job:health-check" });
-
-export const runHealthCheck = async (db: Surreal): Promise<void> => {
-  const result = await db.query(
-    "SELECT count() AS total FROM job_run GROUP BY total"
+export const runHealthCheck = (): Effect.Effect<void> =>
+  Effect.gen(function* () {
+    const db = yield* SurrealDbTag;
+    const result = yield* db.query(
+      "SELECT count() AS total FROM job_run GROUP BY total"
+    );
+    yield* logInfo("Health check passed", { queryResult: result });
+  }).pipe(
+    Effect.provide(SurrealDb),
+    Effect.catchAll((error) =>
+      logInfo("Health check failed", { error: String(error) })
+    )
   );
-  log.info("Health check passed", { queryResult: result });
-};

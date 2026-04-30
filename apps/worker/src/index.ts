@@ -1,42 +1,42 @@
-import { getDb, runMigrations } from "@timesheet-ai/db";
-import { createLogger } from "@timesheet-ai/observability";
-import { ok } from "@timesheet-ai/shared";
+import { SurrealDb } from "@timesheet-ai/db";
+import { logInfo } from "@timesheet-ai/observability";
+import { Effect } from "effect";
 import { pollAndExecute, registerJobHandler } from "./job-runner";
 import { runHealthCheck } from "./jobs/health-check";
 
-const log = createLogger({ app: "worker" });
-
 const POLL_INTERVAL_MS = 5000;
 
-const main = async () => {
-  log.info("Worker starting...");
+let isShuttingDown = false;
 
-  const db = await getDb();
-  await runMigrations(db);
-
-  registerJobHandler("health-check", async (db) => {
-    await runHealthCheck(db);
-    return ok(undefined);
-  });
-
-  log.info("Worker ready, polling for jobs", { intervalMs: POLL_INTERVAL_MS });
-
-  const poll = async () => {
-    try {
-      const count = await pollAndExecute(db);
-      if (count > 0) {
-        log.info("Poll cycle complete", { executed: count });
-      }
-    } catch (err) {
-      log.error("Poll cycle error", { error: String(err) });
-    }
-  };
-
-  setInterval(poll, POLL_INTERVAL_MS);
-  await poll();
-};
-
-main().catch((err) => {
-  log.error("Worker fatal error", { error: String(err) });
-  process.exit(1);
+process.on("SIGINT", () => {
+  isShuttingDown = true;
 });
+
+process.on("SIGTERM", () => {
+  isShuttingDown = true;
+});
+
+registerJobHandler("health-check", runHealthCheck);
+
+const program = Effect.gen(function* () {
+  yield* logInfo("Worker starting...");
+
+  yield* Effect.forkDaemon(
+    Effect.gen(function* () {
+      while (!isShuttingDown) {
+        const count = yield* pollAndExecute();
+        if (count > 0) {
+          yield* logInfo("Poll cycle complete", { executed: count });
+        }
+        yield* Effect.sleep(POLL_INTERVAL_MS);
+      }
+      yield* logInfo("Worker shutting down...");
+    })
+  );
+
+  yield* logInfo("Worker ready", { intervalMs: POLL_INTERVAL_MS });
+});
+
+Effect.runFork(program.pipe(Effect.provide(SurrealDb)));
+
+console.log(`Worker polling every ${POLL_INTERVAL_MS}ms`);
