@@ -18,6 +18,7 @@
     "@timesheet-ai/ingestion-core": "workspace:*",
     "@timesheet-ai/ingestion-git": "workspace:*",
     "@timesheet-ai/observability": "workspace:*",
+    "@timesheet-ai/sessionization": "workspace:*",
     "@timesheet-ai/shared": "workspace:*",
     "dotenv": "catalog:",
     "effect": "catalog:",

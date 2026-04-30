@@ -8,6 +8,7 @@ import { runEventEnrichment } from "./jobs/event-enrichment";
 import { runHealthCheck } from "./jobs/health-check";
 import { runIdentityResolve } from "./jobs/identity-resolve";
 import { runIngestionSync } from "./jobs/ingestion-sync";
+import { runSessionDetection } from "./jobs/session-detection";
 
 const POLL_INTERVAL_MS = 5000;
 
@@ -27,6 +28,7 @@ registerJobHandler("health-check", runHealthCheck);
 registerJobHandler("ingestion-sync", runIngestionSync);
 registerJobHandler("identity-resolve", runIdentityResolve);
 registerJobHandler("event-enrichment", runEventEnrichment);
+registerJobHandler("session-detection", runSessionDetection);
 
 const program = Effect.gen(function* () {
   yield* logInfo("Worker starting...");
