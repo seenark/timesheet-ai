@@ -1,52 +1,26 @@
-export interface LogContext {
-  readonly [key: string]: unknown;
-}
+import { Effect, Layer } from "effect";
 
-export interface Logger {
-  readonly child: (context: LogContext) => Logger;
-  readonly debug: (message: string, extra?: LogContext) => void;
-  readonly error: (message: string, extra?: LogContext) => void;
-  readonly info: (message: string, extra?: LogContext) => void;
-  readonly warn: (message: string, extra?: LogContext) => void;
-}
+export const withModule = (module: string) =>
+  Effect.annotateLogs({ module });
 
-const serialize = (
-  level: string,
-  baseContext: LogContext,
-  message: string,
-  extra?: LogContext
-): string =>
-  JSON.stringify({
-    level,
-    msg: message,
-    ts: new Date().toISOString(),
-    ...baseContext,
-    ...extra,
-  });
+export const logInfo = (message: string, extra?: Record<string, unknown>) => {
+  const base = Effect.logInfo(message);
+  return extra ? base.pipe(Effect.annotateLogs(extra)) : base;
+};
 
-const emit =
-  (level: string, baseContext: LogContext) =>
-  (message: string, extra?: LogContext) => {
-    const line = serialize(level, baseContext, message, extra);
-    switch (level) {
-      case "error":
-        console.error(line);
-        break;
-      case "warn":
-        console.warn(line);
-        break;
-      case "debug":
-        console.debug(line);
-        break;
-      default:
-        console.info(line);
-    }
-  };
+export const logWarn = (message: string, extra?: Record<string, unknown>) => {
+  const base = Effect.logWarning(message);
+  return extra ? base.pipe(Effect.annotateLogs(extra)) : base;
+};
 
-export const createLogger = (context: LogContext = {}): Logger => ({
-  info: emit("info", context),
-  warn: emit("warn", context),
-  error: emit("error", context),
-  debug: emit("debug", context),
-  child: (extra: LogContext) => createLogger({ ...context, ...extra }),
-});
+export const logError = (message: string, extra?: Record<string, unknown>) => {
+  const base = Effect.logError(message);
+  return extra ? base.pipe(Effect.annotateLogs(extra)) : base;
+};
+
+export const logDebug = (message: string, extra?: Record<string, unknown>) => {
+  const base = Effect.logDebug(message);
+  return extra ? base.pipe(Effect.annotateLogs(extra)) : base;
+};
+
+export const ObservabilityLive = Layer.empty;
