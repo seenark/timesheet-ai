@@ -1,8 +1,11 @@
 import { SurrealDb } from "@timesheet-ai/db";
+import { registerPlugin } from "@timesheet-ai/ingestion-core";
+import { GitIngestionPlugin } from "@timesheet-ai/ingestion-git";
 import { logInfo } from "@timesheet-ai/observability";
 import { Effect } from "effect";
 import { pollAndExecute, registerJobHandler } from "./job-runner";
 import { runHealthCheck } from "./jobs/health-check";
+import { runIngestionSync } from "./jobs/ingestion-sync";
 
 const POLL_INTERVAL_MS = 5000;
 
@@ -16,7 +19,10 @@ process.on("SIGTERM", () => {
   isShuttingDown = true;
 });
 
+registerPlugin(GitIngestionPlugin);
+
 registerJobHandler("health-check", runHealthCheck);
+registerJobHandler("ingestion-sync", runIngestionSync);
 
 const program = Effect.gen(function* () {
   yield* logInfo("Worker starting...");
@@ -34,7 +40,10 @@ const program = Effect.gen(function* () {
     })
   );
 
-  yield* logInfo("Worker ready", { intervalMs: POLL_INTERVAL_MS });
+  yield* logInfo("Worker ready", {
+    intervalMs: POLL_INTERVAL_MS,
+    plugins: ["git"],
+  });
 });
 
 Effect.runFork(program.pipe(Effect.provide(SurrealDb)));

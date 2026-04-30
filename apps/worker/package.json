@@ -13,6 +13,8 @@
     "@timesheet-ai/db": "workspace:*",
     "@timesheet-ai/domain": "workspace:*",
     "@timesheet-ai/env": "workspace:*",
+    "@timesheet-ai/ingestion-core": "workspace:*",
+    "@timesheet-ai/ingestion-git": "workspace:*",
     "@timesheet-ai/observability": "workspace:*",
     "@timesheet-ai/shared": "workspace:*",
     "dotenv": "catalog:",
