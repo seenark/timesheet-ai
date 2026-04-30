@@ -1,0 +1,21 @@
+{
+  "name": "@timesheet-ai/ingestion-core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@timesheet-ai/domain": "workspace:*",
+    "@timesheet-ai/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@timesheet-ai/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}
