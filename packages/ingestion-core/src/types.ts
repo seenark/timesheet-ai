@@ -1,3 +1,4 @@
+import { Data, Effect } from "effect";
 import type { NormalizedEvent, Source } from "@timesheet-ai/domain";
 
 export interface IngestionResult {
@@ -8,12 +9,12 @@ export interface IngestionResult {
   readonly rawPayloadCount: number;
 }
 
-export interface IngestionError {
-  readonly externalId?: string;
+export class IngestionError extends Data.TaggedError("IngestionError")<{
   readonly message: string;
-  readonly raw?: unknown;
   readonly source: string;
-}
+  readonly externalId?: string;
+  readonly raw?: unknown;
+}> {}
 
 export interface ExternalIdentityCandidate {
   readonly displayName?: string;
@@ -30,12 +31,18 @@ export interface SourceScopeCandidate {
 }
 
 export interface IngestionPlugin {
-  extractIdentities(rawPayload: unknown): Promise<ExternalIdentityCandidate[]>;
-
-  extractScopes(rawPayload: unknown): Promise<SourceScopeCandidate[]>;
-
-  normalize(rawPayload: unknown): Promise<NormalizedEvent[]>;
+  extractIdentities(
+    rawPayload: unknown,
+  ): Effect.Effect<readonly ExternalIdentityCandidate[], IngestionError>;
+  extractScopes(
+    rawPayload: unknown,
+  ): Effect.Effect<readonly SourceScopeCandidate[], IngestionError>;
+  normalize(
+    rawPayload: unknown,
+  ): Effect.Effect<readonly NormalizedEvent[], IngestionError>;
   readonly source: Source;
-
-  sync(connectionId: string, cursor?: string): Promise<IngestionResult>;
+  sync(
+    connectionId: string,
+    cursor?: string,
+  ): Effect.Effect<IngestionResult, IngestionError>;
 }
