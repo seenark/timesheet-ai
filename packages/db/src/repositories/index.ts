@@ -1,5 +1,15 @@
 // biome-ignore lint/performance/noBarrelFile: Package exports require barrel file
 export {
+  createAuditLog,
+  listAuditLogsByTarget,
+} from "./audit.repo";
+export {
+  enrichEvent,
+  getNormalizedEvent,
+  listEventsByCanonicalUser,
+  listEventsForEnrichment,
+} from "./event-enrich.repo";
+export {
   getEventsByUserAndDateRange,
   storeNormalizedEvent,
   storeRawPayload,
