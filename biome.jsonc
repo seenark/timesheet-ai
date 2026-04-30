@@ -17,6 +17,16 @@
           }
         }
       }
+    },
+    {
+      "includes": ["packages/identity/src/matcher.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNonNullAssertion": "off"
+          }
+        }
+      }
     }
   ]
 }

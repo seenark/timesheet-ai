@@ -4,9 +4,10 @@ import type { MatchSignal } from "./types";
 const levenshteinDistance = (a: string, b: string): number => {
   const matrix: number[][] = [];
   for (let i = 0; i <= b.length; i++) {
-    matrix[i] = [i];
+    matrix[i] = new Array<number>(a.length + 1).fill(0);
+    matrix[i]![0] = i;
   }
-  for (let j = 0; j <= a.length; j++) {
+  for (let j = 1; j <= a.length; j++) {
     matrix[0]![j] = j;
   }
   for (let i = 1; i <= b.length; i++) {
@@ -15,8 +16,11 @@ const levenshteinDistance = (a: string, b: string): number => {
         matrix[i]![j] = matrix[i - 1]![j - 1]!;
       } else {
         matrix[i]![j] =
-          Math.min(matrix[i - 1]![j - 1]!, matrix[i]![j - 1]!, matrix[i - 1]![j]!) +
-          1;
+          Math.min(
+            matrix[i - 1]![j - 1]!,
+            matrix[i]![j - 1]!,
+            matrix[i - 1]![j]!
+          ) + 1;
       }
     }
   }
@@ -25,7 +29,9 @@ const levenshteinDistance = (a: string, b: string): number => {
 
 const similarity = (a: string, b: string): number => {
   const maxLen = Math.max(a.length, b.length);
-  if (maxLen === 0) return 1.0;
+  if (maxLen === 0) {
+    return 1.0;
+  }
   return 1.0 - levenshteinDistance(a.toLowerCase(), b.toLowerCase()) / maxLen;
 };
 
@@ -37,7 +43,9 @@ export const matchByEmailExact = (
   const user = users.find(
     (u) => u.primaryEmail?.toLowerCase() === normalizedEmail
   );
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
   return {
     canonicalUserId: user.id,
     canonicalUserDisplayName: user.displayName,
@@ -57,7 +65,9 @@ export const matchByUsernameExact = (
       u.primaryEmail?.toLowerCase().split("@")[0] === normalizedUsername ||
       u.displayName.toLowerCase().replace(/\s+/g, ".") === normalizedUsername
   );
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
   return {
     canonicalUserId: user.id,
     canonicalUserDisplayName: user.displayName,
@@ -94,7 +104,9 @@ export const matchByDisplayNameSimilar = (
 export const scoreCandidate = (
   signals: readonly MatchSignal[]
 ): MatchSignal | null => {
-  if (signals.length === 0) return null;
+  if (signals.length === 0) {
+    return null;
+  }
   return signals.reduce((best, current) =>
     current.confidence > best.confidence ? current : best
   );
