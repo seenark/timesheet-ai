@@ -8,6 +8,7 @@ import { integrationRoutes } from "./integrations";
 import { mappingRoutes } from "./mappings";
 import { reviewRoutes } from "./review";
 import { sessionRoutes } from "./sessions";
+import { timesheetRoutes } from "./timesheet";
 import { webhookRoutes } from "./webhooks";
 import { workUnitRoutes } from "./work-units";
 
@@ -22,4 +23,5 @@ export const routes = new Elysia()
   .use(clusterRoutes)
   .use(webhookRoutes)
   .use(workUnitRoutes)
-  .use(dailySummaryRoutes);
+  .use(dailySummaryRoutes)
+  .use(timesheetRoutes);
