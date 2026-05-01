@@ -1,7 +1,7 @@
 export interface PlaneUser {
-  readonly id: string;
   readonly display_name: string;
   readonly email: string;
+  readonly id: string;
 }
 
 export interface PlaneLabel {
@@ -10,64 +10,69 @@ export interface PlaneLabel {
 }
 
 export interface PlaneState {
+  readonly group:
+    | "backlog"
+    | "unstarted"
+    | "started"
+    | "completed"
+    | "cancelled";
   readonly id: string;
   readonly name: string;
-  readonly group: "backlog" | "unstarted" | "started" | "completed" | "cancelled";
 }
 
 export interface PlaneIssue {
-  readonly id: string;
-  readonly sequence_id: number;
-  readonly name: string;
-  readonly description_html: string;
-  readonly created_at: string;
-  readonly updated_at: string;
-  readonly created_by: string;
   readonly assignees: readonly string[];
-  readonly state: PlaneState;
+  readonly created_at: string;
+  readonly created_by: string;
+  readonly description_html: string;
+  readonly id: string;
   readonly labels: readonly PlaneLabel[];
-  readonly url: string;
+  readonly name: string;
   readonly project: string;
-  readonly workspace__slug: string;
   readonly project_detail: {
     readonly id: string;
     readonly name: string;
     readonly slug: string;
   };
+  readonly sequence_id: number;
+  readonly state: PlaneState;
+  readonly updated_at: string;
+  readonly url: string;
+  readonly workspace__slug: string;
 }
 
 export interface PlaneActivity {
-  readonly id: string;
+  readonly actor: string;
   readonly created_at: string;
+  readonly field: string | null;
+  readonly id: string;
+  readonly issue: string;
+  readonly new_value: string | null;
+  readonly old_value: string | null;
   readonly updated_at: string;
   readonly verb: string;
-  readonly field: string | null;
-  readonly old_value: string | null;
-  readonly new_value: string | null;
-  readonly actor: string;
-  readonly issue: string;
 }
 
 export interface PlaneComment {
-  readonly id: string;
-  readonly created_at: string;
-  readonly updated_at: string;
-  readonly comment_html: string;
   readonly actor: string;
+  readonly comment_html: string;
+  readonly created_at: string;
+  readonly id: string;
   readonly issue: string;
+  readonly updated_at: string;
 }
 
 export interface PlaneConfig {
-  readonly baseUrl: string;
   readonly apiToken: string;
-  readonly workspaceSlug: string;
+  readonly baseUrl: string;
   readonly projectIds: readonly string[];
+  readonly workspaceSlug: string;
 }
 
 export type PlanePayload = PlaneIssue | PlaneActivity | PlaneComment;
 
 export interface PlaneIssueEnvelope {
-  readonly issue: PlaneIssue;
   readonly activities: readonly PlaneActivity[];
   readonly comments: readonly PlaneComment[];
+  readonly issue: PlaneIssue;
 }
