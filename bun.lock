@@ -219,6 +219,21 @@
         "typescript": "catalog:",
       },
     },
+    "packages/ingestion-plane": {
+      "name": "@timesheet-ai/ingestion-plane",
+      "version": "0.0.0",
+      "dependencies": {
+        "@timesheet-ai/domain": "workspace:*",
+        "@timesheet-ai/ingestion-core": "workspace:*",
+        "@timesheet-ai/shared": "workspace:*",
+        "effect": "catalog:",
+      },
+      "devDependencies": {
+        "@timesheet-ai/config": "workspace:*",
+        "@types/bun": "catalog:",
+        "typescript": "catalog:",
+      },
+    },
     "packages/observability": {
       "name": "@timesheet-ai/observability",
       "version": "0.0.0",
@@ -1044,6 +1059,8 @@
     "@timesheet-ai/ingestion-core": ["@timesheet-ai/ingestion-core@workspace:packages/ingestion-core"],
 
     "@timesheet-ai/ingestion-git": ["@timesheet-ai/ingestion-git@workspace:packages/ingestion-git"],
+
+    "@timesheet-ai/ingestion-plane": ["@timesheet-ai/ingestion-plane@workspace:packages/ingestion-plane"],
 
     "@timesheet-ai/observability": ["@timesheet-ai/observability@workspace:packages/observability"],
 
