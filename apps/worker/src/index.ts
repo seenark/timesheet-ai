@@ -1,5 +1,6 @@
 import { SurrealDb } from "@timesheet-ai/db";
 import { registerPlugin } from "@timesheet-ai/ingestion-core";
+import { DiscordIngestionPlugin } from "@timesheet-ai/ingestion-discord";
 import { GitIngestionPlugin } from "@timesheet-ai/ingestion-git";
 import { PlaneIngestionPlugin } from "@timesheet-ai/ingestion-plane";
 import { logInfo } from "@timesheet-ai/observability";
@@ -27,6 +28,7 @@ process.on("SIGTERM", () => {
 
 registerPlugin(GitIngestionPlugin);
 registerPlugin(PlaneIngestionPlugin);
+registerPlugin(DiscordIngestionPlugin);
 
 registerJobHandler("daily-summary-generation", runDailySummaryGeneration);
 registerJobHandler("event-enrichment", runEventEnrichment);
@@ -54,7 +56,7 @@ const program = Effect.gen(function* () {
 
   yield* logInfo("Worker ready", {
     intervalMs: POLL_INTERVAL_MS,
-    plugins: ["git"],
+    plugins: ["git", "plane", "discord"],
   });
 });
 

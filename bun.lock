@@ -81,6 +81,7 @@
         "@timesheet-ai/env": "workspace:*",
         "@timesheet-ai/identity": "workspace:*",
         "@timesheet-ai/ingestion-core": "workspace:*",
+        "@timesheet-ai/ingestion-discord": "workspace:*",
         "@timesheet-ai/ingestion-git": "workspace:*",
         "@timesheet-ai/ingestion-plane": "workspace:*",
         "@timesheet-ai/observability": "workspace:*",
