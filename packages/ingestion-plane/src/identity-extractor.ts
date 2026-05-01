@@ -9,7 +9,10 @@ const isIssueEnvelope = (payload: unknown): payload is PlaneIssueEnvelope => {
     typeof p === "object" &&
     p !== null &&
     typeof p.issue === "object" &&
-    p.issue !== null
+    p.issue !== null &&
+    Array.isArray(p.issue.assignees) &&
+    Array.isArray(p.activities) &&
+    Array.isArray(p.comments)
   );
 };
 
