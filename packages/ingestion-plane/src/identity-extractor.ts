@@ -5,14 +5,17 @@ import type { PlaneIssueEnvelope } from "./types";
 
 const isIssueEnvelope = (payload: unknown): payload is PlaneIssueEnvelope => {
   const p = payload as Record<string, unknown>;
+  if (typeof p !== "object" || p === null) {
+    return false;
+  }
+  const issue = p.issue as Record<string, unknown> | undefined;
+  if (typeof issue !== "object" || issue === null) {
+    return false;
+  }
   return (
-    typeof p === "object" &&
-    p !== null &&
-    typeof p.issue === "object" &&
-    p.issue !== null &&
-    Array.isArray(p.issue.assignees) &&
-    Array.isArray(p.activities) &&
-    Array.isArray(p.comments)
+    Array.isArray(issue.assignees) &&
+    Array.isArray(issue.activities) &&
+    Array.isArray(issue.comments)
   );
 };
 
