@@ -28,7 +28,7 @@ export interface DiscordGuild {
 export interface DiscordMessageEnvelope {
   readonly channel: {
     readonly id: string;
-    readonly name: string;
+    readonly name?: string;
   };
   readonly guildId: string;
   readonly message: DiscordMessage;
