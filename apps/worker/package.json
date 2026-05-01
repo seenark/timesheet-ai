@@ -18,6 +18,7 @@
     "@timesheet-ai/identity": "workspace:*",
     "@timesheet-ai/ingestion-core": "workspace:*",
     "@timesheet-ai/ingestion-git": "workspace:*",
+    "@timesheet-ai/ingestion-plane": "workspace:*",
     "@timesheet-ai/observability": "workspace:*",
     "@timesheet-ai/sessionization": "workspace:*",
     "@timesheet-ai/shared": "workspace:*",

@@ -1,6 +1,7 @@
 import { SurrealDb } from "@timesheet-ai/db";
 import { registerPlugin } from "@timesheet-ai/ingestion-core";
 import { GitIngestionPlugin } from "@timesheet-ai/ingestion-git";
+import { PlaneIngestionPlugin } from "@timesheet-ai/ingestion-plane";
 import { logInfo } from "@timesheet-ai/observability";
 import { Effect } from "effect";
 import { pollAndExecute, registerJobHandler } from "./job-runner";
@@ -25,6 +26,7 @@ process.on("SIGTERM", () => {
 });
 
 registerPlugin(GitIngestionPlugin);
+registerPlugin(PlaneIngestionPlugin);
 
 registerJobHandler("daily-summary-generation", runDailySummaryGeneration);
 registerJobHandler("event-enrichment", runEventEnrichment);
