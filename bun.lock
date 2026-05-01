@@ -82,6 +82,7 @@
         "@timesheet-ai/identity": "workspace:*",
         "@timesheet-ai/ingestion-core": "workspace:*",
         "@timesheet-ai/ingestion-git": "workspace:*",
+        "@timesheet-ai/ingestion-plane": "workspace:*",
         "@timesheet-ai/observability": "workspace:*",
         "@timesheet-ai/sessionization": "workspace:*",
         "@timesheet-ai/shared": "workspace:*",
@@ -194,6 +195,22 @@
       "dependencies": {
         "@timesheet-ai/db": "workspace:*",
         "@timesheet-ai/domain": "workspace:*",
+        "@timesheet-ai/observability": "workspace:*",
+        "@timesheet-ai/shared": "workspace:*",
+        "effect": "catalog:",
+      },
+      "devDependencies": {
+        "@timesheet-ai/config": "workspace:*",
+        "@types/bun": "catalog:",
+        "typescript": "catalog:",
+      },
+    },
+    "packages/ingestion-discord": {
+      "name": "@timesheet-ai/ingestion-discord",
+      "version": "0.0.0",
+      "dependencies": {
+        "@timesheet-ai/domain": "workspace:*",
+        "@timesheet-ai/ingestion-core": "workspace:*",
         "@timesheet-ai/observability": "workspace:*",
         "@timesheet-ai/shared": "workspace:*",
         "effect": "catalog:",
@@ -1057,6 +1074,8 @@
     "@timesheet-ai/identity": ["@timesheet-ai/identity@workspace:packages/identity"],
 
     "@timesheet-ai/ingestion-core": ["@timesheet-ai/ingestion-core@workspace:packages/ingestion-core"],
+
+    "@timesheet-ai/ingestion-discord": ["@timesheet-ai/ingestion-discord@workspace:packages/ingestion-discord"],
 
     "@timesheet-ai/ingestion-git": ["@timesheet-ai/ingestion-git@workspace:packages/ingestion-git"],
 
