@@ -1,6 +1,6 @@
 import type { IngestionError } from "@timesheet-ai/ingestion-core";
 import { logInfo, logWarn } from "@timesheet-ai/observability";
-import { Effect, type Scope } from "effect";
+import { Effect, Fiber, type Scope } from "effect";
 import type {
   DiscordConfig,
   DiscordMessage,
@@ -231,7 +231,7 @@ export const startGateway = (
     });
 
     ws.addEventListener("close", () => {
-      heartbeatFiber.interrupt();
+      Fiber.interrupt(heartbeatFiber);
     });
 
     yield* Effect.addFinalizer(() =>

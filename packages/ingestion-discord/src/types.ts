@@ -74,7 +74,9 @@ export interface GatewayResume {
 }
 
 export const GATEWAY_INTENTS = {
+  // biome-ignore lint/suspicious/noBitwiseOperators: Discord Gateway intents use bitmask flags
   GUILD_MESSAGES: 1 << 9,
+  // biome-ignore lint/suspicious/noBitwiseOperators: Discord Gateway intents use bitmask flags
   MESSAGE_CONTENT: 1 << 15,
 } as const;
 

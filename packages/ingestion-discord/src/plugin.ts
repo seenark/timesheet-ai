@@ -12,10 +12,56 @@ import { extractDiscordScopes } from "./scope-extractor";
 import type {
   DiscordConfig,
   DiscordCursor,
+  DiscordMessage,
   DiscordMessageEnvelope,
 } from "./types";
 
 const DISCORD_SOURCE: Source = "discord";
+
+const processChannelMessages = (
+  messages: readonly DiscordMessage[],
+  channelId: string,
+  channelName: string,
+  guildId: string
+): Effect.Effect<
+  {
+    normalizedEventCount: number;
+    newIdentityCandidates: number;
+    lastMessageId: string;
+  },
+  IngestionError
+> =>
+  Effect.gen(function* () {
+    let normalizedEventCount = 0;
+    let newIdentityCandidates = 0;
+    const errors: IngestionError[] = [];
+
+    for (const message of messages) {
+      const envelope: DiscordMessageEnvelope = {
+        channel: { id: channelId, name: channelName },
+        guildId,
+        message,
+      };
+
+      const normResult = yield* Effect.either(
+        normalizeDiscordPayload(envelope)
+      );
+      if (normResult._tag === "Right") {
+        normalizedEventCount += normResult.right.length;
+      } else {
+        errors.push(normResult.left);
+      }
+
+      const idResult = yield* Effect.either(extractDiscordIdentities(envelope));
+      if (idResult._tag === "Right") {
+        newIdentityCandidates += idResult.right.length;
+      }
+    }
+
+    const lastMessageId = messages.at(-1)?.id ?? "";
+
+    return { normalizedEventCount, newIdentityCandidates, lastMessageId };
+  });
 
 export const DiscordIngestionPlugin: IngestionPlugin = {
   source: DISCORD_SOURCE,
@@ -67,34 +113,17 @@ export const DiscordIngestionPlugin: IngestionPlugin = {
 
           rawPayloadCount += messages.length;
 
-          for (const message of messages) {
-            const envelope: DiscordMessageEnvelope = {
-              channel: {
-                id: channelId,
-                name: channel.name ?? channelId,
-              },
-              guildId: config.guildId,
-              message,
-            };
+          const channelName = channel.name ?? channelId;
+          const result = yield* processChannelMessages(
+            messages,
+            channelId,
+            channelName,
+            config.guildId
+          );
 
-            const normResult = yield* Effect.either(
-              normalizeDiscordPayload(envelope)
-            );
-            if (normResult._tag === "Right") {
-              normalizedEventCount += normResult.right.length;
-            } else {
-              errors.push(normResult.left);
-            }
-
-            const idResult = yield* Effect.either(
-              extractDiscordIdentities(envelope)
-            );
-            if (idResult._tag === "Right") {
-              newIdentityCandidates += idResult.right.length;
-            }
-
-            newCursor[channelId] = message.id;
-          }
+          normalizedEventCount += result.normalizedEventCount;
+          newIdentityCandidates += result.newIdentityCandidates;
+          newCursor[channelId] = result.lastMessageId;
         }
 
         return {

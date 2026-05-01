@@ -8,10 +8,7 @@ import type {
 
 const DISCORD_API_BASE = "https://discord.com/api/v10";
 
-const fetchJSON = async <T>(
-  url: string,
-  token: string
-): Promise<T> => {
+const fetchJSON = async <T>(url: string, token: string): Promise<T> => {
   const response = await fetch(url, {
     headers: {
       Authorization: `Bot ${token}`,
@@ -42,24 +39,20 @@ export const fetchChannelMessages = async (
   return messages.reverse();
 };
 
-export const fetchChannel = async (
+export const fetchChannel = (
   config: DiscordConfig,
   channelId: string
-): Promise<DiscordChannel> => {
-  return fetchJSON<DiscordChannel>(
+): Promise<DiscordChannel> =>
+  fetchJSON<DiscordChannel>(
     `${DISCORD_API_BASE}/channels/${channelId}`,
     config.botToken
   );
-};
 
-export const fetchGuild = async (
-  config: DiscordConfig
-): Promise<DiscordGuild> => {
-  return fetchJSON<DiscordGuild>(
+export const fetchGuild = (config: DiscordConfig): Promise<DiscordGuild> =>
+  fetchJSON<DiscordGuild>(
     `${DISCORD_API_BASE}/guilds/${config.guildId}`,
     config.botToken
   );
-};
 
 export const buildCursor = (
   currentCursor: DiscordCursor | undefined,
