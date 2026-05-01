@@ -54,7 +54,10 @@ export const normalizePlanePayload = (
       );
     }
 
-    const events: Array<Omit<NormalizedEvent, "id" | "organizationId" | "ingestedAt">> = [];
+    const events: Omit<
+      NormalizedEvent,
+      "id" | "organizationId" | "ingestedAt"
+    >[] = [];
     const issue = rawPayload.issue;
     const isNew = issue.created_at === issue.updated_at;
 
@@ -63,12 +66,12 @@ export const normalizePlanePayload = (
     );
 
     for (const activity of rawPayload.activities) {
-      const eventType =
-        activity.field === "state"
-          ? "issue.status_changed"
-          : activity.field === "assignees"
-            ? "issue.assignee_changed"
-            : "issue.updated";
+      let eventType = "issue.updated";
+      if (activity.field === "state") {
+        eventType = "issue.status_changed";
+      } else if (activity.field === "assignees") {
+        eventType = "issue.assignee_changed";
+      }
 
       events.push({
         source: PLANE_SOURCE,
