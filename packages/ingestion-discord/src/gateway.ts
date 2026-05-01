@@ -12,8 +12,8 @@ import type {
 import { GATEWAY_INTENTS, GATEWAY_OPCODES } from "./types";
 
 const GATEWAY_URL = "wss://gateway.discord.gg/?v=10&encoding=json";
-const _MAX_BACKOFF_MS = 60_000;
-const _INITIAL_BACKOFF_MS = 1000;
+const MAX_BACKOFF_MS = 60_000;
+const INITIAL_BACKOFF_MS = 1000;
 
 export const shouldProcessMessage = (
   message: DiscordMessage,
@@ -39,6 +39,7 @@ export const buildMessageEnvelope = (
 
 interface GatewayState {
   heartbeatIntervalMs: number | null;
+  lastHeartbeatAck: number;
   sequence: number | null;
   sessionId: string | null;
   ws: WebSocket | null;
@@ -58,6 +59,10 @@ const buildIdentifyPayload = (token: string): GatewayIdentify => ({
   op: GATEWAY_OPCODES.IDENTIFY,
 });
 
+// Note: Sequence number updates happen on the main WebSocket event thread,
+// which Discord guarantees is single-threaded per connection. This makes
+// the potential race condition between the message handler and heartbeat
+// fiber acceptable for this use case.
 const handleGatewayPayload = (
   payload: GatewayPayload,
   state: GatewayState,
@@ -82,12 +87,16 @@ const handleGatewayPayload = (
           const channelName =
             channelNames.get(message.channel_id) ?? message.channel_id;
           const envelope = buildMessageEnvelope(message, channelName);
+          // Effect.runFork is intentional here - this callback fires outside the Effect
+          // runtime, so we fork the Effect to handle it without blocking
           Effect.runFork(onMessage(envelope));
         }
       }
       if (payload.t === "READY") {
         const readyData = payload.d as { session_id: string };
         state.sessionId = readyData.session_id;
+        // Effect.runFork is intentional here - this callback fires outside the Effect
+        // runtime, so we fork the Effect to handle it without blocking
         Effect.runFork(
           logInfo("Discord Gateway connected", {
             guildId: config.guildId,
@@ -97,26 +106,69 @@ const handleGatewayPayload = (
       break;
     }
     case GATEWAY_OPCODES.RECONNECT: {
+      // Effect.runFork is intentional here - this callback fires outside the Effect
+      // runtime, so we fork the Effect to handle it without blocking
       Effect.runFork(
-        logWarn("Discord Gateway reconnect requested", {
+        logWarn("Discord Gateway reconnecting...", {
           guildId: config.guildId,
         })
       );
-      state.ws?.close();
+      state.sessionId = null;
+      reconnectWithBackoff(config, onMessage, channelNames, state);
       break;
     }
     case GATEWAY_OPCODES.INVALID_SESSION: {
       state.sessionId = null;
-      state.ws?.close();
+      // Effect.runFork is intentional here - this callback fires outside the Effect
+      // runtime, so we fork the Effect to handle it without blocking
+      Effect.runFork(
+        logWarn("Discord Gateway reconnecting...", {
+          guildId: config.guildId,
+        })
+      );
+      reconnectWithBackoff(config, onMessage, channelNames, state);
       break;
     }
     case GATEWAY_OPCODES.HEARTBEAT_ACK: {
+      state.lastHeartbeatAck = Date.now();
       break;
     }
     default: {
       break;
     }
   }
+};
+
+const reconnectWithBackoff = (
+  config: DiscordConfig,
+  onMessage: (envelope: DiscordMessageEnvelope) => Effect.Effect<void>,
+  channelNames: Map<string, string>,
+  state: GatewayState,
+  backoffMs: number = INITIAL_BACKOFF_MS
+): void => {
+  const actualBackoff = Math.min(backoffMs, MAX_BACKOFF_MS);
+  setTimeout(() => {
+    state.ws?.close();
+    const ws = new WebSocket(GATEWAY_URL);
+    state.ws = ws;
+    ws.addEventListener("open", () => {
+      const identify = buildIdentifyPayload(config.botToken);
+      ws.send(JSON.stringify(identify));
+    });
+    ws.addEventListener("message", (event) => {
+      const payload = JSON.parse(event.data as string) as GatewayPayload;
+      handleGatewayPayload(payload, state, config, onMessage, channelNames);
+    });
+    ws.addEventListener("close", () => {
+      reconnectWithBackoff(
+        config,
+        onMessage,
+        channelNames,
+        state,
+        actualBackoff * 2
+      );
+    });
+  }, actualBackoff);
 };
 
 export const startGateway = (
@@ -131,6 +183,7 @@ export const startGateway = (
       sequence: null,
       sessionId: null,
       ws: null,
+      lastHeartbeatAck: Date.now(),
     };
 
     const ws = new WebSocket(GATEWAY_URL);
@@ -140,6 +193,16 @@ export const startGateway = (
       Effect.gen(function* () {
         yield* Effect.sleep(1000);
         while (state.heartbeatIntervalMs != null) {
+          const now = Date.now();
+          if (now - state.lastHeartbeatAck > state.heartbeatIntervalMs * 2) {
+            Effect.runFork(
+              logWarn("Heartbeat ACK missed, reconnecting...", {
+                guildId: config.guildId,
+              })
+            );
+            state.ws?.close();
+            break;
+          }
           if (
             state.ws?.readyState === WebSocket.OPEN &&
             state.sequence != null
@@ -150,7 +213,8 @@ export const startGateway = (
             });
             state.ws.send(heartbeat);
           }
-          yield* Effect.sleep(state.heartbeatIntervalMs);
+          // CR-01: Use interruptible sleep so fiber can be interrupted immediately
+          yield* Effect.interruptible(Effect.sleep(state.heartbeatIntervalMs));
         }
       })
     );
@@ -167,7 +231,7 @@ export const startGateway = (
     });
 
     ws.addEventListener("close", () => {
-      Effect.runFork(heartbeatFiber.interrupt);
+      heartbeatFiber.interrupt();
     });
 
     yield* Effect.addFinalizer(() =>
