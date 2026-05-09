@@ -14,7 +14,7 @@ const DELETIONS_REGEX = /(\d+) deletion/;
 
 const execGit = async (
   args: readonly string[],
-  cwd?: string
+  cwd?: string,
 ): Promise<string> => {
   const proc = Bun.spawn(["git", ...args], {
     cwd,
@@ -26,18 +26,14 @@ const execGit = async (
 
   if (exitCode !== 0) {
     const stderr = await new Response(proc.stderr).text();
-    throw new Error(
-      `git ${args.join(" ")} failed (exit ${exitCode}): ${stderr}`
-    );
+    throw new Error(`git ${args.join(" ")} failed (exit ${exitCode}): ${stderr}`);
   }
 
   return stdout;
 };
 
 const buildAuthUrl = (url: string, token?: string): string => {
-  if (!token) {
-    return url;
-  }
+  if (!token) return url;
   if (url.startsWith("https://")) {
     return url.replace("https://", `https://${token}@`);
   }
@@ -50,7 +46,7 @@ const extractRepoName = (url: string): string => {
 };
 
 export const cloneOrFetch = (
-  config: GitConfig
+  config: GitConfig,
 ): Effect.Effect<void, IngestionError> =>
   Effect.tryPromise({
     catch: (error) =>
@@ -59,15 +55,10 @@ export const cloneOrFetch = (
         source: "git",
       }),
     try: async () => {
-      const authUrl = buildAuthUrl(config.url, config.authToken);
+      const authUrl = buildAuthUrl(config.repoUrl, config.authToken);
 
       try {
-        await execGit([
-          "--git-dir",
-          config.localPath,
-          "rev-parse",
-          "--git-dir",
-        ]);
+        await execGit(["--git-dir", config.localPath, "rev-parse", "--git-dir"]);
         await execGit(["--git-dir", config.localPath, "fetch", "--all"]);
       } catch {
         await execGit(["clone", "--bare", authUrl, config.localPath]);
@@ -77,7 +68,7 @@ export const cloneOrFetch = (
 
 export const getCommitLog = (
   config: GitConfig,
-  sinceHash?: string
+  sinceHash?: string,
 ): Effect.Effect<readonly RawCommit[], IngestionError> =>
   Effect.tryPromise({
     catch: (error) =>
@@ -109,9 +100,7 @@ export const getCommitLog = (
   });
 
 const parseLogOutput = (output: string): RawCommit[] => {
-  if (!output.trim()) {
-    return [];
-  }
+  if (!output.trim()) return [];
 
   const records = output.split("\x01").filter((r) => r.trim());
   return records.map(parseRecord).filter((c): c is RawCommit => c !== null);
@@ -119,14 +108,11 @@ const parseLogOutput = (output: string): RawCommit[] => {
 
 const parseRecord = (record: string): RawCommit | null => {
   const parts = record.split("\x00");
-  if (parts.length < 8) {
-    return null;
-  }
+  if (parts.length < 8) return null;
 
   const parentLine = parts[6]?.trim() ?? "";
-  const parents = parentLine
-    ? parentLine.split(" ").filter((p) => p.trim())
-    : [];
+  const parentCount = parentLine ? parentLine.split(" ").length : 0;
+  const refNamesPart = parts[7]?.trim() ?? "";
 
   return {
     hash: parts[0]?.trim() ?? "",
@@ -135,17 +121,15 @@ const parseRecord = (record: string): RawCommit | null => {
     authorDate: parts[3]?.trim() ?? "",
     subject: parts[4]?.trim() ?? "",
     body: parts[5]?.trim() ?? "",
-    parents,
-    refNames: parts[7]?.trim()
-      ? (parts[7]?.split(",").map((r) => r.trim()) ?? [])
-      : [],
+    parentCount,
+    refNames: refNamesPart ? refNamesPart.split(",").map((r) => r.trim()) : [],
   };
 };
 
 export const getCommitDiff = (
   localPath: string,
   hash: string,
-  parentCount: number
+  parentCount: number,
 ): Effect.Effect<CommitDiff, IngestionError> =>
   Effect.tryPromise({
     catch: () =>
@@ -157,14 +141,9 @@ export const getCommitDiff = (
       const parentRef = parentCount > 1 ? `${hash}^1` : `${hash}^`;
       let output: string;
       try {
-        output = await execGit([
-          "--git-dir",
-          localPath,
-          "diff",
-          "--shortstat",
-          parentRef,
-          hash,
-        ]);
+        output = await execGit(
+          ["--git-dir", localPath, "diff", "--shortstat", parentRef, hash],
+        );
       } catch {
         return { filesChanged: 0, insertions: 0, deletions: 0 };
       }

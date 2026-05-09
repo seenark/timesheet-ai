@@ -1,99 +1,67 @@
 import type { NormalizedEvent, Source } from "@timesheet-ai/domain";
 import { IngestionError } from "@timesheet-ai/ingestion-core";
 import { Effect } from "effect";
-import type { GitCommit, GitPullRequestPayload, GitPushPayload } from "./types";
+import type { GitCommitEnvelope } from "./types";
 
 const GIT_SOURCE: Source = "git";
 
-const isPushPayload = (payload: unknown): payload is GitPushPayload => {
-  const p = payload as Record<string, unknown>;
-  return Array.isArray(p.commits) && typeof p.ref === "string";
-};
-
-const isPullRequestPayload = (
-  payload: unknown
-): payload is GitPullRequestPayload => {
+const isCommitEnvelope = (payload: unknown): payload is GitCommitEnvelope => {
   const p = payload as Record<string, unknown>;
   return (
-    typeof p.action === "string" &&
-    typeof p.pull_request === "object" &&
-    p.pull_request !== null
+    typeof p === "object" &&
+    p !== null &&
+    typeof p.commit === "object" &&
+    p.commit !== null &&
+    typeof p.repoName === "string"
   );
 };
 
-const normalizeCommit = (
-  commit: GitCommit,
-  pushPayload: GitPushPayload
-): Omit<NormalizedEvent, "id" | "organizationId" | "ingestedAt"> => ({
-  source: GIT_SOURCE,
-  sourceEventType: "commit",
-  eventTime: commit.timestamp,
-  sourceRef: {
-    connectionId: "",
-    externalEventId: commit.id,
-    externalScopeId: pushPayload.repository.full_name,
-    externalUrl: `${pushPayload.repository.html_url}/commit/${commit.id}`,
-  },
-  content: {
-    message: commit.message,
-    commitSha: commit.id,
-    branch: pushPayload.ref.replace("refs/heads/", ""),
-    fileCount:
-      commit.added.length + commit.modified.length + commit.removed.length,
-    additions: commit.added.length,
-    deletions: commit.removed.length,
-    title: commit.message.split("\n")[0],
-  },
-  attribution: {
-    attributionMethod: "direct",
-  },
-  processingVersion: 1,
-});
-
-const normalizePullRequest = (
-  payload: GitPullRequestPayload
-): Omit<NormalizedEvent, "id" | "organizationId" | "ingestedAt"> => ({
-  source: GIT_SOURCE,
-  sourceEventType: `pr.${payload.action}`,
-  eventTime: payload.pull_request.updated_at,
-  sourceRef: {
-    connectionId: "",
-    externalEventId: `pr-${payload.pull_request.id}-${payload.action}`,
-    externalScopeId: payload.repository.full_name,
-    externalUrl: payload.pull_request.html_url,
-  },
-  content: {
-    title: payload.pull_request.title,
-    body: payload.pull_request.body ?? undefined,
-    branch: payload.pull_request.branch,
-    tags: [payload.pull_request.state],
-  },
-  attribution: {
-    attributionMethod: "direct",
-  },
-  processingVersion: 1,
-});
+const buildExternalUrl = (repoName: string, hash: string): string | undefined =>
+  `https://github.com/${repoName}/commit/${hash}`;
 
 export const normalizeGitPayload = (
   rawPayload: unknown
 ): Effect.Effect<readonly NormalizedEvent[], IngestionError> =>
   Effect.gen(function* () {
-    if (isPushPayload(rawPayload)) {
-      const events: NormalizedEvent[] = rawPayload.commits.map(
-        (commit) => normalizeCommit(commit, rawPayload) as NormalizedEvent
+    if (!isCommitEnvelope(rawPayload)) {
+      return yield* Effect.fail(
+        new IngestionError({
+          message: "Unknown Git payload type",
+          source: "git",
+        })
       );
-      return events;
     }
 
-    if (isPullRequestPayload(rawPayload)) {
-      const event = normalizePullRequest(rawPayload) as NormalizedEvent;
-      return [event];
-    }
+    const { commit, diff, repoName } = rawPayload;
 
-    return yield* Effect.fail(
-      new IngestionError({
-        message: "Unknown Git payload type",
-        source: "git",
-      })
-    );
+    const isMerge = commit.parentCount > 1;
+
+    const event: Omit<NormalizedEvent, "id" | "organizationId" | "ingestedAt"> =
+      {
+        source: GIT_SOURCE,
+        sourceEventType: isMerge ? "merge" : "commit",
+        eventTime: commit.date,
+        content: {
+          message: commit.message,
+          title: commit.message.split("\n")[0],
+          commitSha: commit.hash,
+          branch: commit.branch,
+          fileCount: diff.filesChanged,
+          additions: diff.insertions,
+          deletions: diff.deletions,
+        },
+        externalIdentityId: commit.authorEmail,
+        sourceRef: {
+          connectionId: "",
+          externalEventId: commit.hash,
+          externalScopeId: repoName,
+          externalUrl: buildExternalUrl(repoName, commit.hash),
+        },
+        attribution: {
+          attributionMethod: "direct",
+        },
+        processingVersion: 1,
+      };
+
+    return [event] as NormalizedEvent[];
   });

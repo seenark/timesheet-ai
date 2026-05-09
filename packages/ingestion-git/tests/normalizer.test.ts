@@ -1,111 +1,92 @@
 import { describe, expect, it } from "bun:test";
 import { Effect } from "effect";
 import { normalizeGitPayload } from "../src/normalizer";
-import type { GitPullRequestPayload, GitPushPayload } from "../src/types";
+import type { GitCommitEnvelope } from "../src/types";
 
-const pushPayload: GitPushPayload = {
-  ref: "refs/heads/main",
-  before: "abc",
-  after: "def",
-  repository: {
-    id: 1,
-    full_name: "org/client-portal",
-    html_url: "https://github.com/org/client-portal",
+const sampleEnvelope: GitCommitEnvelope = {
+  repoName: "my-org/my-repo",
+  commit: {
+    hash: "a1b2c3d4e5f6789012345678901234567890abc",
+    authorName: "John Doe",
+    authorEmail: "john@example.com",
+    date: "2026-04-30T10:00:00+00:00",
+    message: "Fix login token refresh\n\nToken refresh was failing on expiry.",
+    parentCount: 1,
+    branch: "main",
   },
-  sender: {
-    id: 42,
-    login: "jane-dev",
-    avatar_url: "https://github.com/avatar.png",
+  diff: {
+    filesChanged: 3,
+    insertions: 45,
+    deletions: 12,
   },
-  commits: [
-    {
-      id: "sha123",
-      message: "fix: auth token refresh\n\nDetailed description here",
-      timestamp: "2026-04-30T10:05:00Z",
-      author: { email: "jane@example.com", name: "Jane Doe" },
-      added: ["src/auth.ts"],
-      modified: ["src/token.ts"],
-      removed: ["src/old-auth.ts"],
-    },
-    {
-      id: "sha456",
-      message: "chore: update deps",
-      timestamp: "2026-04-30T10:10:00Z",
-      author: { email: "jane@example.com", name: "Jane Doe" },
-      added: [],
-      modified: ["package.json"],
-      removed: [],
-    },
-  ],
-};
-
-const prPayload: GitPullRequestPayload = {
-  action: "opened",
-  number: 15,
-  pull_request: {
-    id: 999,
-    number: 15,
-    title: "Fix auth token refresh",
-    body: "This PR fixes the token refresh issue.",
-    state: "open",
-    html_url: "https://github.com/org/client-portal/pull/15",
-    branch: "fix/auth-refresh",
-    user: { id: 42, login: "jane-dev" },
-    merged: false,
-    created_at: "2026-04-30T09:00:00Z",
-    updated_at: "2026-04-30T09:00:00Z",
-  },
-  repository: {
-    id: 1,
-    full_name: "org/client-portal",
-    html_url: "https://github.com/org/client-portal",
-  },
-  sender: { id: 42, login: "jane-dev" },
 };
 
 describe("normalizeGitPayload", () => {
-  it("normalizes a push payload into commit events", async () => {
-    const result = await Effect.runPromise(normalizeGitPayload(pushPayload));
-    expect(result).toHaveLength(2);
+  it("normalizes a commit envelope into an event", async () => {
+    const result = await Effect.runPromise(normalizeGitPayload(sampleEnvelope));
 
-    const first = result[0];
-    expect(first.source).toBe("git");
-    expect(first.sourceEventType).toBe("commit");
-    expect(first.eventTime).toBe("2026-04-30T10:05:00Z");
-    expect(first.content.message).toBe(
-      "fix: auth token refresh\n\nDetailed description here"
-    );
-    expect(first.content.commitSha).toBe("sha123");
-    expect(first.content.branch).toBe("main");
-    expect(first.content.fileCount).toBe(3);
-    expect(first.content.additions).toBe(1);
-    expect(first.content.deletions).toBe(1);
-    expect(first.sourceRef.externalScopeId).toBe("org/client-portal");
-    expect(first.content.title).toBe("fix: auth token refresh");
-  });
-
-  it("normalizes a pull request payload", async () => {
-    const result = await Effect.runPromise(normalizeGitPayload(prPayload));
     expect(result).toHaveLength(1);
 
     const event = result[0];
     expect(event.source).toBe("git");
-    expect(event.sourceEventType).toBe("pr.opened");
-    expect(event.content.title).toBe("Fix auth token refresh");
-    expect(event.content.body).toBe("This PR fixes the token refresh issue.");
-    expect(event.content.branch).toBe("fix/auth-refresh");
-    expect(event.sourceRef.externalUrl).toBe(
-      "https://github.com/org/client-portal/pull/15"
+    expect(event.sourceEventType).toBe("commit");
+    expect(event.eventTime).toBe("2026-04-30T10:00:00+00:00");
+    expect(event.content.title).toBe("Fix login token refresh");
+    expect(event.content.message).toBe(
+      "Fix login token refresh\n\nToken refresh was failing on expiry."
     );
+    expect(event.content.commitSha).toBe(
+      "a1b2c3d4e5f6789012345678901234567890abc"
+    );
+    expect(event.content.branch).toBe("main");
+    expect(event.content.fileCount).toBe(3);
+    expect(event.content.additions).toBe(45);
+    expect(event.content.deletions).toBe(12);
+    expect(event.externalIdentityId).toBe("john@example.com");
+    expect(event.sourceRef.externalEventId).toBe(
+      "a1b2c3d4e5f6789012345678901234567890abc"
+    );
+    expect(event.sourceRef.externalScopeId).toBe("my-org/my-repo");
+  });
+
+  it("classifies merge commits correctly", async () => {
+    const mergeEnvelope: GitCommitEnvelope = {
+      ...sampleEnvelope,
+      commit: {
+        ...sampleEnvelope.commit,
+        parentCount: 2,
+      },
+    };
+
+    const result = await Effect.runPromise(normalizeGitPayload(mergeEnvelope));
+
+    expect(result[0].sourceEventType).toBe("merge");
   });
 
   it("fails for unknown payload type", async () => {
     const result = await Effect.runPromise(
       Effect.either(normalizeGitPayload({ unknown: true }))
     );
+
     expect(result._tag).toBe("Left");
     if (result._tag === "Left") {
       expect(result.left.message).toContain("Unknown Git payload type");
     }
+  });
+
+  it("handles commit with empty branch", async () => {
+    const noBranchEnvelope: GitCommitEnvelope = {
+      ...sampleEnvelope,
+      commit: {
+        ...sampleEnvelope.commit,
+        branch: undefined,
+      },
+    };
+
+    const result = await Effect.runPromise(
+      normalizeGitPayload(noBranchEnvelope)
+    );
+
+    expect(result[0].content.branch).toBeUndefined();
   });
 });

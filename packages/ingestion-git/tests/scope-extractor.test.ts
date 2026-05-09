@@ -1,68 +1,41 @@
 import { describe, expect, it } from "bun:test";
 import { Effect } from "effect";
 import { extractGitScopes } from "../src/scope-extractor";
-import type { GitPullRequestPayload, GitPushPayload } from "../src/types";
+import type { GitCommitEnvelope } from "../src/types";
 
-const pushPayload: GitPushPayload = {
-  ref: "refs/heads/main",
-  before: "abc",
-  after: "def",
-  repository: {
-    id: 1,
-    full_name: "org/client-portal",
-    html_url: "https://github.com/org/client-portal",
+const sampleEnvelope: GitCommitEnvelope = {
+  repoName: "my-org/my-repo",
+  commit: {
+    hash: "a1b2c3d4",
+    authorName: "John Doe",
+    authorEmail: "john@example.com",
+    date: "2026-04-30T10:00:00+00:00",
+    message: "Fix login",
+    parentCount: 1,
   },
-  sender: {
-    id: 42,
-    login: "jane-dev",
-    avatar_url: "https://github.com/avatar.png",
-  },
-  commits: [],
-};
-
-const prPayload: GitPullRequestPayload = {
-  action: "opened",
-  number: 5,
-  pull_request: {
-    id: 100,
-    number: 5,
-    title: "Feature X",
-    body: null,
-    state: "open",
-    html_url: "https://github.com/org/client-portal/pull/5",
-    branch: "feature/x",
-    user: { id: 42, login: "jane-dev" },
-    merged: false,
-    created_at: "2026-04-30T09:00:00Z",
-    updated_at: "2026-04-30T09:00:00Z",
-  },
-  repository: {
-    id: 1,
-    full_name: "org/client-portal",
-    html_url: "https://github.com/org/client-portal",
-  },
-  sender: { id: 42, login: "jane-dev" },
+  diff: { filesChanged: 1, insertions: 5, deletions: 2 },
 };
 
 describe("extractGitScopes", () => {
-  it("extracts repo scope from push payload", async () => {
-    const result = await Effect.runPromise(extractGitScopes(pushPayload));
+  it("extracts repo scope", async () => {
+    const result = await Effect.runPromise(extractGitScopes(sampleEnvelope));
+
     expect(result).toHaveLength(1);
     expect(result[0].scopeType).toBe("repo");
-    expect(result[0].externalScopeId).toBe("org/client-portal");
-    expect(result[0].name).toBe("org/client-portal");
+    expect(result[0].externalScopeId).toBe("my-org/my-repo");
+    expect(result[0].name).toBe("my-org/my-repo");
   });
 
-  it("extracts repo scope from PR payload", async () => {
-    const result = await Effect.runPromise(extractGitScopes(prPayload));
-    expect(result).toHaveLength(1);
-    expect(result[0].externalScopeId).toBe("org/client-portal");
-  });
-
-  it("fails for unknown payload", async () => {
+  it("fails for unknown payload type", async () => {
     const result = await Effect.runPromise(
-      Effect.either(extractGitScopes({ random: true }))
+      Effect.either(extractGitScopes({ unknown: true }))
     );
+
     expect(result._tag).toBe("Left");
+    if (result._tag === "Left") {
+      expect(result.left.message).toContain(
+        "Cannot extract scopes from unknown payload type"
+      );
+    }
   });
 });

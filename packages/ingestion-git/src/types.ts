@@ -1,68 +1,41 @@
-export interface GitAuthor {
-  readonly email: string;
-  readonly name: string;
+export interface GitConfig {
+  readonly authToken?: string;
+  readonly branch?: string;
+  readonly localPath: string;
+  readonly repoUrl: string;
 }
 
-export interface GitCommit {
-  readonly added: readonly string[];
-  readonly author: GitAuthor;
-  readonly id: string;
-  readonly message: string;
-  readonly modified: readonly string[];
-  readonly removed: readonly string[];
-  readonly timestamp: string;
+export interface RawCommit {
+  readonly authorDate: string;
+  readonly authorEmail: string;
+  readonly authorName: string;
+  readonly body: string;
+  readonly hash: string;
+  readonly parentCount: number;
+  readonly refNames: readonly string[];
+  readonly subject: string;
 }
 
-export interface GitPushPayload {
-  readonly after: string;
-  readonly before: string;
-  readonly commits: readonly GitCommit[];
-  readonly head_commit?: GitCommit;
-  readonly ref: string;
-  readonly repository: {
-    readonly id: number;
-    readonly full_name: string;
-    readonly html_url: string;
-  };
-  readonly sender: {
-    readonly id: number;
-    readonly login: string;
-    readonly avatar_url: string;
-  };
+export interface CommitDiff {
+  readonly deletions: number;
+  readonly filesChanged: number;
+  readonly insertions: number;
 }
 
-export interface GitPullRequestPayload {
-  readonly action: string;
-  readonly number: number;
-  readonly pull_request: {
-    readonly id: number;
-    readonly number: number;
-    readonly title: string;
-    readonly body: string | null;
-    readonly state: string;
-    readonly html_url: string;
-    readonly branch: string;
-    readonly user: {
-      readonly id: number;
-      readonly login: string;
-    };
-    readonly merged: boolean;
-    readonly merged_by?: {
-      readonly id: number;
-      readonly login: string;
-    };
-    readonly created_at: string;
-    readonly updated_at: string;
+export interface GitCommitEnvelope {
+  readonly commit: {
+    readonly authorEmail: string;
+    readonly authorName: string;
+    readonly branch?: string;
+    readonly date: string;
+    readonly hash: string;
+    readonly message: string;
+    readonly parentCount: number;
   };
-  readonly repository: {
-    readonly id: number;
-    readonly full_name: string;
-    readonly html_url: string;
+  readonly diff: {
+    readonly deletions: number;
+    readonly filesChanged: number;
+    readonly insertions: number;
   };
-  readonly sender: {
-    readonly id: number;
-    readonly login: string;
-  };
+  readonly repoName: string;
 }
-
-export type GitWebhookPayload = GitPushPayload | GitPullRequestPayload;

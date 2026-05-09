@@ -1,108 +1,45 @@
 import { describe, expect, it } from "bun:test";
 import { Effect } from "effect";
 import { extractGitIdentities } from "../src/identity-extractor";
-import type { GitPullRequestPayload, GitPushPayload } from "../src/types";
+import type { GitCommitEnvelope } from "../src/types";
 
-const pushPayload: GitPushPayload = {
-  ref: "refs/heads/main",
-  before: "abc",
-  after: "def",
-  repository: {
-    id: 1,
-    full_name: "org/repo",
-    html_url: "https://github.com/org/repo",
+const sampleEnvelope: GitCommitEnvelope = {
+  repoName: "my-org/my-repo",
+  commit: {
+    hash: "a1b2c3d4",
+    authorName: "John Doe",
+    authorEmail: "john@example.com",
+    date: "2026-04-30T10:00:00+00:00",
+    message: "Fix login",
+    parentCount: 1,
   },
-  sender: {
-    id: 42,
-    login: "jane-dev",
-    avatar_url: "https://github.com/avatar.png",
-  },
-  commits: [
-    {
-      id: "sha1",
-      message: "fix bug",
-      timestamp: "2026-04-30T10:00:00Z",
-      author: { email: "jane@example.com", name: "Jane Doe" },
-      added: [],
-      modified: ["a.ts"],
-      removed: [],
-    },
-    {
-      id: "sha2",
-      message: "another fix",
-      timestamp: "2026-04-30T10:05:00Z",
-      author: { email: "jane@example.com", name: "Jane Doe" },
-      added: [],
-      modified: ["b.ts"],
-      removed: [],
-    },
-  ],
-};
-
-const prMergedPayload: GitPullRequestPayload = {
-  action: "closed",
-  number: 1,
-  pull_request: {
-    id: 10,
-    number: 1,
-    title: "Fix bug",
-    body: null,
-    state: "closed",
-    html_url: "https://github.com/org/repo/pull/1",
-    branch: "fix/bug",
-    user: { id: 42, login: "jane-dev" },
-    merged: true,
-    merged_by: { id: 99, login: "reviewer" },
-    created_at: "2026-04-30T09:00:00Z",
-    updated_at: "2026-04-30T10:00:00Z",
-  },
-  repository: {
-    id: 1,
-    full_name: "org/repo",
-    html_url: "https://github.com/org/repo",
-  },
-  sender: { id: 42, login: "jane-dev" },
+  diff: { filesChanged: 1, insertions: 5, deletions: 2 },
 };
 
 describe("extractGitIdentities", () => {
-  it("extracts sender and author identities from push", async () => {
-    const result = await Effect.runPromise(extractGitIdentities(pushPayload));
-    expect(result.length).toBeGreaterThanOrEqual(2);
-
-    const sender = result.find((c) => c.externalId === "42");
-    expect(sender).toBeDefined();
-    expect(sender?.username).toBe("jane-dev");
-
-    const author = result.find((c) => c.email === "jane@example.com");
-    expect(author).toBeDefined();
-    expect(author?.displayName).toBe("Jane Doe");
-  });
-
-  it("deduplicates same author across commits", async () => {
-    const result = await Effect.runPromise(extractGitIdentities(pushPayload));
-    const emailIdentities = result.filter(
-      (c) => c.email === "jane@example.com"
-    );
-    expect(emailIdentities).toHaveLength(1);
-  });
-
-  it("extracts PR author and merger", async () => {
+  it("extracts identity from commit author", async () => {
     const result = await Effect.runPromise(
-      extractGitIdentities(prMergedPayload)
+      extractGitIdentities(sampleEnvelope)
     );
-    expect(result).toHaveLength(2);
 
-    const author = result.find((c) => c.externalId === "42");
-    expect(author?.username).toBe("jane-dev");
-
-    const merger = result.find((c) => c.externalId === "99");
-    expect(merger?.username).toBe("reviewer");
+    expect(result).toHaveLength(1);
+    expect(result[0].externalId).toBe("john@example.com");
+    expect(result[0].email).toBe("john@example.com");
+    expect(result[0].displayName).toBe("John Doe");
+    expect(result[0].username).toBe("john");
+    expect(result[0].source).toBe("git");
   });
 
-  it("fails for unknown payload", async () => {
+  it("fails for unknown payload type", async () => {
     const result = await Effect.runPromise(
-      Effect.either(extractGitIdentities({ foo: "bar" }))
+      Effect.either(extractGitIdentities({ unknown: true }))
     );
+
     expect(result._tag).toBe("Left");
+    if (result._tag === "Left") {
+      expect(result.left.message).toContain(
+        "Cannot extract identities from unknown payload type"
+      );
+    }
   });
 });
